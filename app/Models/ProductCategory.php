@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
-class Supplier extends Model
+
+class ProductCategory extends Model
 {
     use HasFactory, Notifiable;
 
@@ -19,24 +20,18 @@ class Supplier extends Model
         static::creating(function($model)
         {
             $model->id = Str::uuid();
-            $model->is_active = '1';
+            // $model->is_active = '1';
         });
     }
 
     protected $fillable = [
-        'supplier_name',
-        'supplier_address',
-        'supplier_rob_num',
-        'supplier_contact_person',
-        'supplier_phone_num',
-        'supplier_email',
-        'supplier_tax_identification_num',
-        'supplier_remark',
-        'is_active',
+        'product_categories_name',
+        'product_categories_sub_level',//1 -main , 2 - sub , 3 - sub(size)
+        'product_categories_parent_uuid',
     ];
 
     public function products()
     {
-        return $this->hasMany(\App\Models\Product::class, 'product_supplier_id', 'id');
+        return $this->hasMany(\App\Models\Product::class, 'product_category_id', 'id');
     }
 }

@@ -31,16 +31,16 @@ export default function InventoryIndex() {
                     <div className="overflow-hidden sm:rounded-lg m-2 p-2 border-b-2">
                         <div className='font-bold text-2xl mb-2'>Products</div>
                         <div className=' grid grid-cols-2 md:grid-cols-4 gap-2'>
-                            <Link href={route('inventory.index')}>
+                            <Link href={route('productCategories.index')}>
                                 <div className='p-3 bg-white border-gray-700 rounded-lg shadow-md h-24'>
                                     {/* <ClockPlus /> */}
                                     Product Categories
                                 </div>
                             </Link>
-                            <Link href={route('inventory.index')}>
+                            <Link href={route('product.index')}>
                                 <div className='p-3 bg-white border-gray-700 rounded-lg shadow-md h-24'>
                                     {/* <ClockPlus /> */}
-                                    Products List & Registration
+                                    Products
                                 </div>
                             </Link>
                         </div>
@@ -51,13 +51,13 @@ export default function InventoryIndex() {
                             <Link href={route('inventory.index')}>
                                 <div className='p-3 bg-white border-gray-700 rounded-lg shadow-md h-24'>
                                     {/* <ClockPlus /> */}
-                                    Stock Card
+                                    Stock In
                                 </div>
                             </Link>
                             <Link href={route('inventory.index')}>
                                 <div className='p-3 bg-white border-gray-700 rounded-lg shadow-md h-24'>
                                     {/* <ClockPlus /> */}
-                                    Stock Card Check
+                                    Stock Card
                                 </div>
                             </Link>
                             <Link href={route('inventory.index')}>

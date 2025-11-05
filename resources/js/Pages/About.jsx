@@ -16,7 +16,8 @@ export default function Dashboard() {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            Owned and developed by Umar Qayyum bin Zainal. <br />Licensed to PKPP Agro Sdn. Bhd. only for usage, not for further development.
+                            Owned and developed by Umar Qayyum bin Zainal. <br />
+                            Licensed to <b>PKPP Agro Sdn. Bhd.</b> only for usage, not for further development.
                         </div>
                     </div>
                 </div>

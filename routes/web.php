@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,6 +32,14 @@ Route::middleware('auth')->group(function () {
 
     //Inventory
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+
+    //Product
+    Route::get('/product/category', [ProductCategoryController::class, 'index'])->name('productCategories.index');
+    Route::post('/product/category/save', [ProductCategoryController::class, 'saveProductCategory'])->name('productCategory.saveProductCategory');
+    Route::get('/product', [ProductController::class, 'index'])->name('product.index');
+    Route::post('/product', [ProductController::class, 'saveProduct'])->name('product.saveProduct');
+    Route::post('/product/deactivate', [ProductController::class, 'deactivateProduct'])->name('product.deactivateProduct');
+    Route::post('/product/delete', [ProductController::class, 'deleteProduct'])->name('product.deleteProduct');
 
     //Supplier
     Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');

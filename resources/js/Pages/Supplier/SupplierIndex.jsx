@@ -13,7 +13,7 @@ import DeleteSupplier from './Partials/DeleteSupplier';
 export default function SupplierIndex({ suppliers }) {
     const { flash } = usePage().props;
 
-        const columns = [
+    const columns = [
     // { Header: 'Nama', accessor: 'allottee_name' },
     // { Header: 'No. Fail / Geran', accessor: 'lot_file_num' },
         {
@@ -43,9 +43,9 @@ export default function SupplierIndex({ suppliers }) {
             Cell: ({ row }) => (
                 <div className="flex flex-col space-x-2">
                     {row.is_active === 1 ? (
-                        <div className='text-sm bg-green-500 px-1 py-0.5 rounded-full text-white text-center'>Active</div>
+                        <div className='text-sm bg-green-300 px-1 py-0.5 rounded-full font-bold text-green-700 text-center'>Active</div>
                     ) : (
-                        <div className='text-sm bg-red-500 px-1 py-0.5 rounded-full text-white text-center'>Inactive</div>
+                        <div className='text-sm bg-red-300 px-1 py-0.5 rounded-full text-red-700 font-bold text-center'>Inactive</div>
                     )}
                 </div>
             ),

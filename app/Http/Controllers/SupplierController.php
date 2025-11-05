@@ -40,8 +40,6 @@ class SupplierController extends Controller
         $supplier = new Supplier($validatedData);
         $supplier->save();
         return Redirect::route('supplier.index')->with('success', 'Supplier added successfully.');
-
-
     }
 
     public function updateSupplier(Request $request): RedirectResponse
