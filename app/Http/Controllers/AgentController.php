@@ -41,7 +41,7 @@ class AgentController extends Controller
         //get id of the newly created agent
         $agentId = DB::getPdo()->lastInsertId();
         // dd($agentId);
-        
+
 
         return Redirect::route('agent.register.success')->with('success', 'Agent registration submitted successfully and is pending approval.');
     }
@@ -49,5 +49,13 @@ class AgentController extends Controller
     public function agentRegistrationSuccess()
     {
         return inertia('Agent/Public/AgentRegistrationSuccess');
+    }
+
+    public function index()
+    {
+        $agents = Agent::where('agent_status', '!=', 'inactive')->get();
+        return Inertia::render('Agent/AgentIndex', [
+            'agents' => $agents,
+        ]);
     }
 }

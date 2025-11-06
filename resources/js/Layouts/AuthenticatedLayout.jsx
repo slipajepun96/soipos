@@ -43,11 +43,17 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Supplier
                                 </NavLink>
-                                                                <NavLink
+                                <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
                                 >
                                     Report
+                                </NavLink>
+                                <NavLink
+                                    href={route('agent.index')}
+                                    active={route().current('agent.index')}
+                                >
+                                    Agent
                                 </NavLink>
                             </div>
                         </div>
@@ -199,13 +205,21 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Supplier
                                 </ResponsiveNavLink>
-                                                                <ResponsiveNavLink
+                                <ResponsiveNavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
                                     onClick={() => setShowingNavigationDropdown(false)}
                                     className="text-gray-100 hover:bg-gray-800 rounded-lg px-3 py-3 block"
                                 >
                                     Report
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('agent.index')}
+                                    active={route().current('agent.index')}
+                                    onClick={() => setShowingNavigationDropdown(false)}
+                                    className="text-gray-100 hover:bg-gray-800 rounded-lg px-3 py-3 block"
+                                >
+                                    Agent
                                 </ResponsiveNavLink>
                             </div>
 

@@ -56,6 +56,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/supplier/update', [SupplierController::class, 'updateSupplier'])->name('supplier.updateSupplier');
     Route::post('/supplier/deactivate', [SupplierController::class, 'deactivateSupplier'])->name('supplier.deactivateSupplier');
     Route::post('/supplier/delete', [SupplierController::class, 'deleteSupplier'])->name('supplier.deleteSupplier');
+
+    //Agent
+    Route::get('/agent', [AgentController::class, 'index'])->name('agent.index');
 });
 
 require __DIR__.'/auth.php';
