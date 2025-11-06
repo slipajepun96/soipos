@@ -5,11 +5,11 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import { Plus, FileText } from 'lucide-react';
 import Alert from '@/Components/Alert';
 import { usePage } from '@inertiajs/react';
-import AddProduct from './Partials/AddProduct';
-import DeleteProduct from './Partials/DeleteProduct';
-import ViewProductDetail from './Partials/ViewProductDetail';
+import AddProduct from '../Partials/AddProduct';
+import DeleteProduct from '../Partials/DeleteProduct';
+import ViewProductDetail from '../Partials/ViewProductDetail';
 
-export default function ProductIndex({ products , product_categories , suppliers}) {
+export default function StockInIndex({ products , product_categories , suppliers}) {
     const { flash } = usePage().props;
 
     // Helper function to get supplier name by ID
@@ -22,7 +22,7 @@ export default function ProductIndex({ products , product_categories , suppliers
     // { Header: 'Nama', accessor: 'allottee_name' },
     // { Header: 'No. Fail / Geran', accessor: 'lot_file_num' },
         {
-            Header: 'Product Name',
+            Header: 'GRN #',
             accessor: ['product_name'],
             Cell: ({ row }) => (
                 <div className="flex flex-col ">
@@ -32,7 +32,7 @@ export default function ProductIndex({ products , product_categories , suppliers
             ),
         },
         {
-            Header: 'Product Details',
+            Header: 'Supplier',
             accessor: ['product_supplier_id', 'product_category_id'],
             Cell: ({ row }) => (
                 <div className="flex flex-col space-x-2">
@@ -44,14 +44,26 @@ export default function ProductIndex({ products , product_categories , suppliers
             ),
         },  
         {
-            Header: 'Status',
+            Header: 'Date',
+            accessor: ['product_supplier_id', 'product_category_id'],
+            Cell: ({ row }) => (
+                <div className="flex flex-col space-x-2">
+                    <div className='font-base'>
+                        {getSupplierName(row.product_supplier_id)}
+                    </div>
+                    <div>{row.product_sku_code}</div>
+                </div>
+            ),
+        },  
+        {
+            Header: 'GRN Status',
             accessor: [''],
             Cell: ({ row }) => (
                 <div className="flex flex-col space-x-2">
                     {row.is_active === 1 ? (
-                        <div className='text-sm bg-green-300 px-1 py-0.5 rounded-full font-bold text-green-700 text-center'>Active</div>
+                        <div className='text-sm bg-gray-300 px-1 py-0.5 rounded-full font-bold text-gray-700 text-center'>Locked</div>
                     ) : (
-                        <div className='text-sm bg-red-300 px-1 py-0.5 rounded-full text-red-700 font-bold text-center'>Inactive</div>
+                        <div className='text-sm bg-red-300 px-1 py-0.5 rounded-full text-red-700 font-bold text-center'>Not Verified</div>
                     )}
                 </div>
             ),
@@ -60,7 +72,7 @@ export default function ProductIndex({ products , product_categories , suppliers
             Header: '',
             accessor: 'actions',
             Cell: ({ row }) => (
-                <div className="flex space-x-2 justify-end">
+                <div className="flex space-x-1 justify-end">
                     {/* <PrimaryButton>Edit</PrimaryButton> */}
                     <ViewProductDetail product={ row } suppliers={ suppliers } product_categories={ product_categories }/>
                     <DeleteProduct product={row} />
@@ -74,11 +86,11 @@ export default function ProductIndex({ products , product_categories , suppliers
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Product
+                    Stock In
                 </h2>
             }
         >
-            <Head title="Product" />
+            <Head title="Stock In" />
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">
@@ -88,8 +100,12 @@ export default function ProductIndex({ products , product_categories , suppliers
                             message={flash.message}
                         />
                     )}
-                    <div className='px-4'>
-                         <AddProduct product_categories={product_categories} suppliers={suppliers} />                   
+                    <div className='px-4 gap-1 flex'>
+                        <Link href={route('inventory.stockIn.addGRN')}>
+                            <PrimaryButton>Add GRN</PrimaryButton>
+                        </Link>
+                        <PrimaryButton>Add GRN</PrimaryButton>
+                         {/* <AddProduct product_categories={product_categories} suppliers={suppliers} />                  */}
                     </div>
 
                     <div className="overflow-hidden sm:rounded-lg m-2 p-2">

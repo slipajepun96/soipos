@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
@@ -22,6 +23,10 @@ Route::get('/', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/agent/register', [AgentController::class, 'registerIndex'])->name('agent.register');
+Route::post('/agent/register', [AgentController::class, 'saveAgentRegistration'])->name('agent.register.save');
+Route::get('/agent/register/success', [AgentController::class, 'agentRegistrationSuccess'])->name('agent.register.success');
+
 Route::middleware('auth')->group(function () {
 
     Route::get('/about', function () {return Inertia::render('About');})->name('about');
@@ -32,6 +37,10 @@ Route::middleware('auth')->group(function () {
 
     //Inventory
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    
+    //Inventory Stock In
+    Route::get('/inventory/stock-in', [InventoryController::class, 'stockInIndex'])->name('inventory.stockIn.index');
+    Route::get('/inventory/stock-in/add-grn',[InventoryController::class, 'addGRN'])->name('inventory.stockIn.addGRN');
 
     //Product
     Route::get('/product/category', [ProductCategoryController::class, 'index'])->name('productCategories.index');

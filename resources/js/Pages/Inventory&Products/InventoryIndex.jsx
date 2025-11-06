@@ -48,10 +48,16 @@ export default function InventoryIndex() {
                     <div className="overflow-hidden sm:rounded-lg m-2 p-2 border-b-2">
                         <div className='font-bold text-2xl mb-2'>Inventory</div>
                         <div className=' grid grid-cols-2 md:grid-cols-4 gap-2'>
-                            <Link href={route('inventory.index')}>
+                            <Link href={route('inventory.stockIn.index')}>
                                 <div className='p-3 bg-white border-gray-700 rounded-lg shadow-md h-24'>
                                     {/* <ClockPlus /> */}
                                     Stock In
+                                </div>
+                            </Link>
+                            <Link href={route('inventory.index')}>
+                                <div className='p-3 bg-white border-gray-700 rounded-lg shadow-md h-24'>
+                                    {/* <ClockPlus /> */}
+                                    Stock Out
                                 </div>
                             </Link>
                             <Link href={route('inventory.index')}>
