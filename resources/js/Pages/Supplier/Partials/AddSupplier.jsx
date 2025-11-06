@@ -30,7 +30,6 @@ export default function AddSupplier({ }) {
         supplier_contact_person: '',
         supplier_phone_num: '',
         supplier_email: '',
-        supplier_rob_num: '',
         supplier_tax_identification_num: '',
         supplier_remark: '',
     });

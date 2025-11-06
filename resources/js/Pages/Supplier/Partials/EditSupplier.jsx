@@ -31,7 +31,6 @@ export default function EditSupplier({ supplier }) {
         supplier_contact_person: supplier.supplier_contact_person || '',
         supplier_phone_num: supplier.supplier_phone_num || '',
         supplier_email: supplier.supplier_email || '',
-        supplier_rob_num: supplier.supplier_rob_num || '',
         supplier_tax_identification_num: supplier.supplier_tax_identification_num || '',
         supplier_remark: supplier.supplier_remark || '',
     });
@@ -73,7 +72,6 @@ export default function EditSupplier({ supplier }) {
             supplier_contact_person: supplier.supplier_contact_person ,
             supplier_phone_num: supplier.supplier_phone_num ,
             supplier_email: supplier.supplier_email ,
-            supplier_rob_num: supplier.supplier_rob_num ,
             supplier_tax_identification_num: supplier.supplier_tax_identification_num ,
             supplier_remark: supplier.supplier_remark ,
         });
