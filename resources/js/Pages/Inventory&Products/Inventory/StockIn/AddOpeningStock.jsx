@@ -21,36 +21,42 @@ import {
 } from '@/Components/ui/dialog';
 import DataTable from '@/Components/DataTable';
 import { Plus, FileText, Trash2 } from 'lucide-react';
+import { Calendar } from "@/Components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/Components/ui/popover";
 import Alert from '@/Components/Alert';
 import { usePage } from '@inertiajs/react';
 import AddProduct from '../Partials/AddProduct';
 import DeleteProduct from '../Partials/DeleteProduct';
 import ViewProductDetail from '../Partials/ViewProductDetail';
 import { useForm } from '@inertiajs/react';
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-export default function AddGRN({ products , product_categories , suppliers}) {
+export default function AddOpeningStock({ products , product_categories , suppliers}) {
     const { flash } = usePage().props;
 
-    // GRN Header form
     const { data, setData, post, processing, errors, reset } = useForm({
         supplier_id: '',
-        received_date: '',
-        transportation_mode: '',
-        remarks: '',
+        opening_stock_date: '',
     });
 
-    // Add Product Dialog form
+    const [date, setDate] = useState();
+    const [open, setOpen] = useState(false);
+    
+    const [expiryDate, setExpiryDate] = useState();
+    const [expiryOpen, setExpiryOpen] = useState(false);
+    const [shouldSubmit, setShouldSubmit] = useState(false);
+
     const { data: productData, setData: setProductData, reset: resetProduct } = useForm({
         product_id: '',
         quantity: '',
         unit_cost: '',
         total_cost: '',
         expiry_date: '',
-        batch_number: '',
     });
 
-    // State for GRN items
-    const [grnItems, setGrnItems] = useState([]);
+    // State for OS items
+    const [OSItems, setOSItems] = useState([]);
     const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
     
     // Helper functions
@@ -64,10 +70,12 @@ export default function AddGRN({ products , product_categories , suppliers}) {
         return product;
     };
 
-    // Add product to GRN
-    const handleAddProduct = (e) => {
-        e.preventDefault();
-        
+    const getSupplierName = (supplierId) => {
+        const supplier = suppliers?.find(s => s.id === supplierId);
+        return supplier ? supplier.supplier_name : 'Unknown Supplier';
+    };
+
+    const handleAddProduct = () => {
         const product = getProductDetails(productData.product_id);
         if (!product) return;
 
@@ -80,41 +88,66 @@ export default function AddGRN({ products , product_categories , suppliers}) {
             unit_cost: productData.unit_cost,
             total_cost: (parseFloat(productData.quantity) * parseFloat(productData.unit_cost)).toFixed(2),
             expiry_date: productData.expiry_date,
-            batch_number: productData.batch_number,
         };
 
-        setGrnItems([...grnItems, newItem]);
+        setOSItems([...OSItems, newItem]);
         resetProduct();
+        setExpiryDate(null); // Reset expiry date state
         setIsAddProductDialogOpen(false);
+        console.log('Added Product:', newItem);
     };
 
-    // Remove product from GRN
+    // remove product from OS
     const removeProduct = (id) => {
-        setGrnItems(grnItems.filter(item => item.id !== id));
+        setOSItems(OSItems.filter(item => item.id !== id));
     };
 
-    // Submit GRN
-    const submitGRN = (e) => {
-        e.preventDefault();
-        
-        const grnData = {
-            ...data,
-            items: grnItems
-        };
+    //-----------------------------------------------------------------------
+        // Add useEffect to handle the actual submission
+    useEffect(() => {
+        if (shouldSubmit) {
+            // Reset the flag first
+            setShouldSubmit(false);
+            
+            // Now post the data
+            post(route('inventory.stockIn.saveOpeningStock'), {
+                supplier_id: data.supplier_id,
+                opening_stock_date: data.opening_stock_date,
+                items: data.items,
+            }, {
+                preserveScroll: true,
+                onError: errors => {
+                    console.group('Submission Errors');
+                    console.error('Errors:', errors);
+                    console.groupEnd();
+                },
+                onSuccess: () => {
+                    reset();
+                    // setRowAmounts({});
+                    // setDate(undefined);
+                },
+            });
+        }
+    }, [data, shouldSubmit]); // Watch for changes in data and shouldSubmit
 
-        console.log('Submitting GRN:', grnData);
-        
-        // You would typically post to a GRN route
-        // post(route('grn.store'), grnData, {
-        //     onSuccess: () => {
-        //         reset();
-        //         setGrnItems([]);
-        //         console.log('GRN saved successfully');
-        //     },
-        //     onError: (errors) => {
-        //         console.log('Error saving GRN:', errors);
-        //     }
-        // });
+    const submit = (e) => {
+        e.preventDefault();
+
+        const items = OSItems.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_cost: item.unit_cost,
+            total_cost: item.total_cost,
+            expiry_date: item.expiry_date || "",
+        }));
+
+        setData(prev => ({
+            ...prev,
+            items: items
+        }));
+
+        // Set flag to trigger submission
+        setShouldSubmit(true);
     };
 
     // Calculate total for productData when quantity or unit_cost changes
@@ -125,18 +158,11 @@ export default function AddGRN({ products , product_categories , suppliers}) {
         setProductData('total_cost', total);
     }, [productData.quantity, productData.unit_cost]);
 
-    // Helper function to get supplier name by ID
-    const getSupplierName = (supplierId) => {
-        const supplier = suppliers?.find(s => s.id === supplierId);
-        return supplier ? supplier.supplier_name : 'Unknown Supplier';
-    };
-
-
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Stock In / Add GRN
+                    Stock In / Add Opening Stock
                 </h2>
             }
         >
@@ -156,8 +182,7 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                     </div>
 
                     <div className='m-4'>
-                        <form onSubmit={submitGRN}>
-                            {/* GRN Header Form */}
+                        <form onSubmit={submit}>
                             <div className="items-center space-y-2 bg-white p-4 rounded-xl shadow-md">
                                 <div className="grid flex-1 gap-2 ">
                                     <div>
@@ -203,76 +228,40 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                                 <div className="grid flex-1 gap-2 md:grid-cols-3">
                                     <div>
                                         <InputLabel
-                                            htmlFor="received_date"
+                                            htmlFor="opening_stock_date"
                                             value={
                                                 <>
-                                                    Date of Received<span className="text-red-500">*</span>
+                                                    Date of Opening Stock<span className="text-red-500">*</span>
                                                 </>
                                             }
                                         />
-                                        <TextInput
-                                            id="received_date"
-                                            name="received_date"
-                                            type="date"
-                                            value={data.received_date}
-                                            className="mt-1 block w-full"
-                                            onChange={(e) =>
-                                                setData('received_date', e.target.value)
-                                            }
-                                            required
-                                        />
+                                        <Popover open={open} onOpenChange={setOpen} modal={false}>
+                                            <PopoverTrigger asChild>
+                                                <button
+                                                    type="button"
+                                                    className={cn(
+                                                        "w-full text-left font-normal bg-white border rounded-md px-3 py-2",
+                                                        !date && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {date ? format(date, "dd/MM/yyyy") : "Select date"}
+                                                </button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" trapFocus={false}>
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={date}
+                                                    onSelect={selectedDate => {
+                                                        setDate(selectedDate);
+                                                        setData('opening_stock_date', selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '');
+                                                        setOpen(false);
+                                                    }}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
                                         <InputError
-                                            message={errors.received_date}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                    <div>
-                                        <InputLabel
-                                            htmlFor="transportation_mode"
-                                            value={
-                                                <>
-                                                    Mode of Transportation<span className="text-red-500">*</span>
-                                                </>
-                                            }
-                                        />
-                                        <Select
-                                            onValueChange={(value) =>
-                                                setData('transportation_mode', value)
-                                        }>
-                                            <SelectTrigger className="w-full bg-white">
-                                                <SelectValue placeholder="Select Mode of Transportation" />
-                                            </SelectTrigger>
-                                            <SelectContent 
-                                                id="transportation_mode"
-                                                name="transportation_mode"
-                                            >
-                                                <SelectItem value="courier">Courier</SelectItem>
-                                                <SelectItem value="delivery">Delivery</SelectItem>
-                                                <SelectItem value="pickup">Pick Up</SelectItem>
-                                                <SelectItem value="digital">Digital</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError
-                                            message={errors.transportation_mode}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                    <div>
-                                        <InputLabel
-                                            htmlFor="remarks"
-                                            value="Remarks"
-                                        />
-                                        <TextInput
-                                            id="remarks"
-                                            name="remarks"
-                                            value={data.remarks}
-                                            className="mt-1 block w-full"
-                                            onChange={(e) =>
-                                                setData('remarks', e.target.value)
-                                            }
-                                        />
-                                        <InputError
-                                            message={errors.remarks}
+                                            message={errors.opening_stock_date}
                                             className="mt-2"
                                         />
                                     </div>
@@ -289,9 +278,13 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                                     </DialogTrigger>
                                     <DialogContent className="max-w-2xl">
                                         <DialogHeader>
-                                            <DialogTitle>Add Product to GRN</DialogTitle>
+                                            <DialogTitle>Add Product to Opening Stock</DialogTitle>
                                         </DialogHeader>
-                                        <form onSubmit={handleAddProduct}>
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleAddProduct();
+                                        }}>
                                             <div className="grid gap-4 py-4">
                                                 <div className="">
                                                     <div>
@@ -353,13 +346,31 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
                                                         <InputLabel htmlFor="expiry_date" value="Expiry Date" />
-                                                        <TextInput
-                                                            id="expiry_date"
-                                                            type="date"
-                                                            className="bg-white w-full"
-                                                            value={productData.expiry_date}
-                                                            onChange={(e) => setProductData('expiry_date', e.target.value)}
-                                                        />
+                                                        <Popover open={expiryOpen} onOpenChange={setExpiryOpen} modal={false}>
+                                                            <PopoverTrigger asChild>
+                                                                <button
+                                                                    type="button"
+                                                                    className={cn(
+                                                                        "w-full text-left font-normal bg-white border rounded-md px-3 py-2",
+                                                                        !expiryDate && "text-muted-foreground"
+                                                                    )}
+                                                                >
+                                                                    {expiryDate ? format(expiryDate, "dd/MM/yyyy") : "Select expiry date"}
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto p-0" trapFocus={false}>
+                                                                <Calendar
+                                                                    mode="single"
+                                                                    selected={expiryDate}
+                                                                    onSelect={selectedDate => {
+                                                                        setExpiryDate(selectedDate);
+                                                                        setProductData('expiry_date', selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '');
+                                                                        setExpiryOpen(false);
+                                                                    }}
+                                                                    initialFocus
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
                                                     </div>
                                                 </div>
                                             </div>
@@ -372,7 +383,7 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                                                     Cancel
                                                 </PrimaryButton>
                                                 <PrimaryButton type="submit">
-                                                    Add to GRN
+                                                    Add
                                                 </PrimaryButton>
                                             </div>
                                         </form>
@@ -381,41 +392,39 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                             </div>
 
                             {/* GRN Items Table */}
-                            {grnItems.length > 0 && (
+                            {OSItems.length > 0 && (
                                 <div className="mt-4 bg-white p-4 rounded-xl shadow-md">
-                                    <h3 className="text-lg font-semibold mb-4">GRN Items</h3>
+                                    <h3 className="text-lg font-semibold mb-4">Opening Stock Items</h3>
                                     <div className="overflow-x-auto">
                                         <table className="w-full border-collapse border border-gray-300">
                                             <thead>
                                                 <tr className="bg-gray-50">
                                                     <th className="border border-gray-300 px-4 py-2 text-left">Product</th>
-                                                    <th className="border border-gray-300 px-4 py-2 text-left">SKU</th>
+                                                    {/* <th className="border border-gray-300 px-4 py-2 text-left">SKU</th> */}
                                                     <th className="border border-gray-300 px-4 py-2 text-right">Quantity</th>
                                                     <th className="border border-gray-300 px-4 py-2 text-right">Unit Cost</th>
                                                     <th className="border border-gray-300 px-4 py-2 text-right">Total</th>
-                                                    <th className="border border-gray-300 px-4 py-2 text-left">Batch</th>
-                                                    <th className="border border-gray-300 px-4 py-2 text-left">Expiry</th>
+                                                    <th className="border border-gray-300 px-4 py-2 text-left">Expiry Date</th>
                                                     <th className="border border-gray-300 px-4 py-2 text-center">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {grnItems.map((item) => (
+                                                {OSItems.map((item) => (
                                                     <tr key={item.id}>
-                                                        <td className="border border-gray-300 px-4 py-2">{item.product_name}</td>
-                                                        <td className="border border-gray-300 px-4 py-2">{item.product_sku}</td>
+                                                        <td className="border border-gray-300 px-4 py-2 font-bold">{item.product_name}</td>
+                                                        {/* <td className="border border-gray-300 px-4 py-2">{item.product_sku}</td> */}
                                                         <td className="border border-gray-300 px-4 py-2 text-right">{item.quantity}</td>
                                                         <td className="border border-gray-300 px-4 py-2 text-right">RM {parseFloat(item.unit_cost).toFixed(2)}</td>
                                                         <td className="border border-gray-300 px-4 py-2 text-right">RM {item.total_cost}</td>
-                                                        <td className="border border-gray-300 px-4 py-2">{item.batch_number || '-'}</td>
                                                         <td className="border border-gray-300 px-4 py-2">{item.expiry_date || '-'}</td>
                                                         <td className="border border-gray-300 px-4 py-2 text-center">
-                                                            <button
+                                                            <PrimaryButton
                                                                 type="button"
                                                                 onClick={() => removeProduct(item.id)}
-                                                                className="text-red-600 hover:text-red-800"
+                                                                className="bg-red-500 hover:bg-red-700 focus:bg-red-400 text-red-600 hover:text-red-800"
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
-                                                            </button>
+                                                            </PrimaryButton>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -424,7 +433,7 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                                                 <tr className="bg-gray-50 font-semibold">
                                                     <td colSpan="4" className="border border-gray-300 px-4 py-2 text-right">Total:</td>
                                                     <td className="border border-gray-300 px-4 py-2 text-right">
-                                                        RM {grnItems.reduce((total, item) => total + parseFloat(item.total_cost), 0).toFixed(2)}
+                                                        RM {OSItems.reduce((total, item) => total + parseFloat(item.total_cost), 0).toFixed(2)}
                                                     </td>
                                                     <td colSpan="3" className="border border-gray-300"></td>
                                                 </tr>
@@ -438,11 +447,11 @@ export default function AddGRN({ products , product_categories , suppliers}) {
                             <div className='mt-4 w-full flex justify-end'>
                                 <PrimaryButton 
                                     type="submit" 
-                                    disabled={processing || grnItems.length === 0}
+                                    disabled={processing || OSItems.length === 0}
                                     className="flex items-center gap-2"
                                 >
                                     <FileText className="h-4 w-4" />
-                                    Save GRN
+                                    Save Opening Stock
                                 </PrimaryButton>
                             </div>
                         </form>

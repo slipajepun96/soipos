@@ -66,7 +66,7 @@ function Calendar({
           "has-focus:border-ring border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] relative rounded-md border",
           defaultClassNames.dropdown_root
         ),
-        dropdown: cn("absolute inset-0 opacity-0", defaultClassNames.dropdown),
+        dropdown: cn("bg-popover absolute inset-0 opacity-0", defaultClassNames.dropdown),
         caption_label: cn("select-none font-medium", captionLayout === "label"
           ? "text-sm"
           : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5", defaultClassNames.caption_label),

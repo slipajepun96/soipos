@@ -41,6 +41,8 @@ Route::middleware('auth')->group(function () {
     //Inventory Stock In
     Route::get('/inventory/stock-in', [InventoryController::class, 'stockInIndex'])->name('inventory.stockIn.index');
     Route::get('/inventory/stock-in/add-grn',[InventoryController::class, 'addGRN'])->name('inventory.stockIn.addGRN');
+    Route::get('/inventory/stock-in/opening-stock/',[InventoryController::class, 'addOpeningStock'])->name('inventory.stockIn.addOpeningStock');
+    Route::post('/inventory/stock-in/opening-stock/save', [InventoryController::class, 'saveOpeningStock'])->name('inventory.stockIn.saveOpeningStock');
 
     //Product
     Route::get('/product/category', [ProductCategoryController::class, 'index'])->name('productCategories.index');

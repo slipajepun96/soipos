@@ -80,14 +80,32 @@ export default function AgentRegister({ }) {
                     )}
 
                     <div className="overflow-hidden sm:rounded-lg m-2 p-2 ">
-                        <div className='font-bold text-2xl mb-2'>Pendaftaran Ejen Kambing Perap Dihati</div>
-                        <div className='md:flex md:flex-row'>
-                            <div className="rounded-2xl bg-white p-2 m-2 shadow-md text-gray-900 md:w-1/3">
-                                <img src="/img/agent-register.jpeg" className="" alt="" />
+                        {/* <div className='font-bold text-2xl mb-2'>Pendaftaran Ejen Kambing Perap Dihati</div> */}
+                        <div className='grid flex-1 gap-2 md:grid-cols-3 my-2'>
+                            <div className="rounded-2xl bg-white p-2 m-2 shadow-md text-gray-900">
+                                <img src="/img/1.jpeg" className="" alt="" />
                             </div>
-                            <div className='bg-white p-4 m-2 rounded-2xl shadow-md md:w-2/3'>
+                            <div className="rounded-2xl bg-white p-2 m-2 shadow-md text-gray-900">
+                                <img src="/img/4.jpeg" className="" alt="" />
+                            </div>
+                            <div className="rounded-2xl bg-white p-2 m-2 shadow-md text-gray-900">
+                                <img src="/img/5.jpeg" className="" alt="" />
+                            </div>
+                            <div className="rounded-2xl bg-white p-2 m-2 shadow-md text-gray-900">
+                                <img src="/img/6.jpeg" className="" alt="" />
+                            </div>
+                            <div className="rounded-2xl bg-white p-2 m-2 shadow-md text-gray-900">
+                                <img src="/img/3.jpeg" className="" alt="" />
+                            </div>
+                            <div className="rounded-2xl bg-white p-2 m-2 shadow-md text-gray-900">
+                                <img src="/img/2.jpeg" className="" alt="" />
+                            </div>
+                        </div>
+                        <div>
+                            <div className='bg-white p-4 m-2 rounded-2xl shadow-md '>
                                 <form onSubmit={submit}>
                                     <div className="items-center space-y-2">
+                                        <p className='font-bold text-2xl'>Pendaftaran Sebagai Ejen Kambing Perap Dihati</p>
                                         <div className="grid flex-1 gap-2">
                                             <div>
                                                 <InputLabel
@@ -103,7 +121,6 @@ export default function AgentRegister({ }) {
                                                     name="agent_name"
                                                     value={data.agent_name}
                                                     className="mt-1 block w-full"
-                                                    isFocused={true}
                                                     onChange={(e) =>
                                                         setData('agent_name', e.target.value)
                                                     }
@@ -130,7 +147,6 @@ export default function AgentRegister({ }) {
                                                     name="agent_nric"
                                                     value={data.agent_nric}
                                                     className="mt-1 block w-full"
-                                                    isFocused={true}
                                                     onChange={(e) =>
                                                         setData('agent_nric', e.target.value)
                                                     }
@@ -155,7 +171,6 @@ export default function AgentRegister({ }) {
                                                     name="agent_phone_num"
                                                     value={data.product_num_of_measure}
                                                     className="mt-1 block w-full"
-                                                    isFocused={true}
                                                     onChange={(e) =>
                                                         setData('agent_phone_num', e.target.value)
                                                     }
@@ -180,7 +195,6 @@ export default function AgentRegister({ }) {
                                                     name="agent_email"
                                                     value={data.agent_email}
                                                     className="mt-1 block w-full"
-                                                    isFocused={true}
                                                     onChange={(e) =>
                                                         setData('agent_email', e.target.value)
                                                     }
@@ -206,7 +220,6 @@ export default function AgentRegister({ }) {
                                                     name="agent_address"
                                                     value={data.agent_address}
                                                     className="mt-1 block w-full"
-                                                    isFocused={true}
                                                     onChange={(e) =>
                                                         setData('agent_address', e.target.value)
                                                     }

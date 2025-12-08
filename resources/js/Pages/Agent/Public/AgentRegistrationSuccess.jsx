@@ -49,7 +49,7 @@ export default function AgentRegistrationSuccess({ }) {
                                 <img src="http://www.pkppagro.com.my/img/logo dihati.webp" alt="Success" className='mx-auto w-48' />
                                 <div className='text-lg font-semibold mb-2'>Terima Kasih!</div>
                                 <div className='text-md font-base mb-2'>Pendaftaran anda telah berjaya. Pegawai dari Unit Pemasaran PKPP Agro Sdn. Bhd. akan menghubungi anda dalam masa terdekat untuk penerangan dan informasi selanjutnya.</div>
-                                <div className='text-md font-base mb-2'>Kenali PKPP Agro Sdn. Bhd. dengan lebih lanjut di <Link href="https://www.pkppagro.com.my" className="text-blue-500 hover:underline">sini</Link></div>
+                                {/* <div className='text-md font-base mb-2'>Kenali PKPP Agro Sdn. Bhd. dengan lebih lanjut di <Link href="https://www.pkppagro.com.my" className="text-blue-500 hover:underline">sini</Link></div> */}
                             </div>
                         </div>
 

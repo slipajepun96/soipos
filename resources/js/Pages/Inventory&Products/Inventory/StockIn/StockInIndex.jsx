@@ -104,7 +104,9 @@ export default function StockInIndex({ products , product_categories , suppliers
                         <Link href={route('inventory.stockIn.addGRN')}>
                             <PrimaryButton>Add GRN</PrimaryButton>
                         </Link>
-                        <PrimaryButton>Add GRN</PrimaryButton>
+                        <Link href={route('inventory.stockIn.addOpeningStock')}>
+                            <PrimaryButton>Add Opening Stock</PrimaryButton>
+                        </Link>
                          {/* <AddProduct product_categories={product_categories} suppliers={suppliers} />                  */}
                     </div>
 
