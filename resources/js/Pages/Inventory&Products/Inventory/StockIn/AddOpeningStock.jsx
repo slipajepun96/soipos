@@ -29,7 +29,7 @@ import AddProduct from '../Partials/AddProduct';
 import DeleteProduct from '../Partials/DeleteProduct';
 import ViewProductDetail from '../Partials/ViewProductDetail';
 import { useForm } from '@inertiajs/react';
-import { format } from "date-fns";
+// import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function AddOpeningStock({ products , product_categories , suppliers}) {
