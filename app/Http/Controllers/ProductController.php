@@ -43,9 +43,9 @@ class ProductController extends Controller
                 'product_description' => 'nullable|string|max:1000',
                 'product_price' => 'required|numeric',
                 'product_num_of_measure' => 'required|numeric',
-                'product_supplier_id' => 'required|string|max:255',
                 'product_low_stock_limit' => 'required|numeric',
             ]);
+            // dd($validatedData);
 
             $product = new Product($validatedData);
             $product->save();

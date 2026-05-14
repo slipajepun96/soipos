@@ -105,8 +105,9 @@ export default function SupplierIndex({ suppliers }) {
                     </div> */}
                     <div className='px-4'>
                         <AddSupplier />
+                        <DataTable columns={columns} data={suppliers} className='mt-2'/>
                     </div>
-                    <DataTable columns={columns} data={suppliers} />
+                    
                 </div>
             </div>
         </AuthenticatedLayout>

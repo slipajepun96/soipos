@@ -11,6 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogDescription
 } from '@/Components/ui/dialog';
 import {
     Select,
@@ -59,7 +60,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                     'product_description',
                     'product_price',
                     'product_num_of_measure',
-                    'product_supplier_id',
                     'product_low_stock_limit',
                 );
                 // Close the dialog
@@ -68,6 +68,7 @@ export default function AddProduct({ product_categories, suppliers }) {
             },
             onError: (errors) => {
                 console.log('Error saving product:', errors);
+                console.log('Current form data:', data);
             }
         });
     };
@@ -85,7 +86,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                 'product_description',
                 'product_price',
                 'product_num_of_measure',
-                'product_supplier_id',
                 'product_low_stock_limit',
             );
         }
@@ -100,9 +100,15 @@ export default function AddProduct({ product_categories, suppliers }) {
             <DialogContent className="max-w-xl">
                 <DialogHeader>
                     <DialogTitle>Add New Product</DialogTitle>
-                    {/* <DialogDescription>
-                        Anyone who has this link will be able to view this.
-                    </DialogDescription> */}
+                    <DialogDescription>
+                        {Object.keys(errors).length > 0 && (
+                            <div className='bg-red-200/50 p-2 rounded rounded-lg text-red-600'>
+                                {Object.values(errors).map((error, i) => (
+                                    <p key={i}>{error}</p>
+                                ))}
+                            </div>
+                        )}
+                    </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={submit}>
                     <div className="items-center space-y-2">
@@ -121,7 +127,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     name="product_name"
                                     value={data.product_name}
                                     className="mt-1 block w-full"
-                                    isFocused={true}
                                     onChange={(e) =>
                                         setData('product_name', e.target.value)
                                     }
@@ -148,7 +153,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     name="product_num_of_measure"
                                     value={data.product_num_of_measure}
                                     className="mt-1 block w-full"
-                                    isFocused={true}
                                     onChange={(e) =>
                                         setData('product_num_of_measure', e.target.value)
                                     }
@@ -206,7 +210,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     name="product_price"
                                     value={data.product_price}
                                     className="mt-1 block w-full"
-                                    isFocused={true}
                                     onChange={(e) =>
                                         setData('product_price', e.target.value)
                                     }
@@ -234,7 +237,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     name="product_sku_code"
                                     value={data.product_sku_code}
                                     className="mt-1 block w-full"
-                                    isFocused={true}
                                     onChange={(e) =>
                                         setData('product_sku_code', e.target.value)
                                     }
@@ -260,7 +262,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     name="product_code"
                                     value={data.product_code}
                                     className="mt-1 block w-full"
-                                    isFocused={true}
                                     onChange={(e) =>
                                         setData('product_code', e.target.value)
                                     }
@@ -309,7 +310,8 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     className="mt-2"
                                 />
                             </div>
-                            <div>
+                            {/* disable supplier sebab supplier tak perlu */}
+                            {/* <div>
                                 <InputLabel
                                     htmlFor="product_supplier_id"
                                     value={
@@ -344,7 +346,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     message={errors.product_supplier_id}
                                     className="mt-2"
                                 />
-                            </div>
+                            </div> */}
                             <div>
                                 <InputLabel
                                     htmlFor="product_low_stock_limit"
@@ -359,7 +361,6 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     name="product_low_stock_limit"
                                     value={data.product_low_stock_limit}
                                     className="mt-1 block w-full"
-                                    isFocused={true}
                                     onChange={(e) =>
                                         setData('product_low_stock_limit', e.target.value)
                                     }

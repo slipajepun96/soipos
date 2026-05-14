@@ -6,7 +6,7 @@ import { Plus, FileText } from 'lucide-react';
 import Alert from '@/Components/Alert';
 import { usePage } from '@inertiajs/react';
 import AddProduct from '../Partials/AddProduct';
-import DeleteProduct from '../Partials/DeleteProduct';
+// import DeleteProduct from '../Partials/DeleteProduct';
 import ViewProductDetail from '../Partials/ViewProductDetail';
 
 export default function StockInIndex({ products , product_categories , suppliers}) {
@@ -22,7 +22,7 @@ export default function StockInIndex({ products , product_categories , suppliers
     // { Header: 'Nama', accessor: 'allottee_name' },
     // { Header: 'No. Fail / Geran', accessor: 'lot_file_num' },
         {
-            Header: 'GRN #',
+            Header: 'Doc #',
             accessor: ['product_name'],
             Cell: ({ row }) => (
                 <div className="flex flex-col ">
@@ -74,8 +74,8 @@ export default function StockInIndex({ products , product_categories , suppliers
             Cell: ({ row }) => (
                 <div className="flex space-x-1 justify-end">
                     {/* <PrimaryButton>Edit</PrimaryButton> */}
-                    <ViewProductDetail product={ row } suppliers={ suppliers } product_categories={ product_categories }/>
-                    <DeleteProduct product={row} />
+                    {/* <ViewProductDetail product={ row } suppliers={ suppliers } product_categories={ product_categories }/> */}
+                    {/* <DeleteProduct product={row} /> */}
                 </div>
                 
             ),

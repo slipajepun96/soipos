@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function DataTable({ columns, data }) {
+export default function DataTable({ columns, data, className = "", showSearch = true }) {
     const [search, setSearch] = useState('');
 
     // Filter data based on search input
@@ -22,29 +22,30 @@ export default function DataTable({ columns, data }) {
     );
 
     return (
-        <div className="p-4 ">
+        <div className={className}>
             {/* Search Input */}
-            <div className="mb-4">
-                <input
-                    type="text"
-                    placeholder="Search..."
-                    className="w-full md:w-1/3 p-2 border border-gray-300 rounded-md"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
+            {showSearch && (
+                <div className="mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+            )}
 
             {/* Table */}
-
             
-            <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse ">
-                    <thead className=''>
-                        <tr className='rounded-xl'>
+            <div className="overflow-x-auto rounded-2xl border border-gray-200">
+                <table className="min-w-full border-collapse bg-white">
+                    <thead>
+                        <tr>
                             {columns.map((column) => (
                                 <th
                                     key={column.accessor || column.Header}
-                                    className="px-4 py-2 text-left bg-gray-100"
+                                    className="p-4 text-left text-xs border-gray-200 bg-gray-50 text-gray-500 uppercase border-b"
                                 >
                                     {column.Header}
                                 </th>
@@ -73,16 +74,21 @@ export default function DataTable({ columns, data }) {
                                     colSpan={columns.length}
                                     className="px-4 py-2 text-center text-gray-500"
                                 >
-                                    No records found.
+                                    No data found
                                 </td>
                             </tr>
                         )}
+
+                        <tr>
+                            <div className=" text-sm text-gray-600 px-4 py-2 ">
+                                Showing <b>{filteredData.length}</b> of <b>{data.length}</b> rows.
+                            </div>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-            <div className="mt-4 text-sm text-gray-600">
-                Shows {filteredData.length} of {data.length} entries.
-            </div>
+            {/* Row Count Summary */}
+
 
         </div>
     );

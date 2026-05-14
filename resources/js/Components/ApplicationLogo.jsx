@@ -1,6 +1,6 @@
 export default function ApplicationLogo(props) {
     return (
-        <div className="flex items-center font-extrabold text-xl">
+        <div className="flex items-center font-bold text-2xl">
             {/* <svg
                 {...props}
                 viewBox="0 0 316 316"

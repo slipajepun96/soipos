@@ -12,8 +12,8 @@ export default function AuthenticatedLayout({ header, children }) {
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-gray-900 text-gray-50">
+        <div className="min-h-screen bg-white">
+            <nav className="border-b border-gray-100 bg-white text-gray-950">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
@@ -27,31 +27,42 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
+                                    className='text-white'
                                 >
                                     Sales
+                                </NavLink>
+                                <NavLink
+                                    href={route('product.index')}
+                                    active={route().current('product.index')}
+                                    className='text-white'
+                                >
+                                    Product
                                 </NavLink>
                                 <NavLink
                                     href={route('inventory.index')}
                                     active={route().current('inventory.index')}
                                     className='text-white'
                                 >
-                                    Inventory
+                                    Stock
                                 </NavLink>
                                 <NavLink
                                     href={route('supplier.index')}
                                     active={route().current('supplier.index')}
+                                    className='text-white'
                                 >
                                     Supplier
                                 </NavLink>
                                 <NavLink
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
+                                    className='text-white'
                                 >
                                     Report
                                 </NavLink>
                                 <NavLink
                                     href={route('agent.index')}
                                     active={route().current('agent.index')}
+                                    className='text-white'
                                 >
                                     Agent
                                 </NavLink>
@@ -65,7 +76,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent px-3 py-2 text-sm font-medium leading-4 text-gray-50 transition duration-150 ease-in-out hover:text-gray-100 focus:outline-none"
+                                                className="inline-flex items-center rounded-md border border-transparent px-3 py-2 text-sm font-medium leading-4 text-gray-800 transition duration-150 ease-in-out hover:text-gray-950 focus:outline-none"
                                             >
                                                 {user.name}
 
@@ -163,7 +174,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         />
                         
                         {/* Sidebar */}
-                        <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-gray-900 shadow-xl transition-transform duration-300 ease-in-out transform">
+                        <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-gray-950 shadow-xl transition-transform duration-300 ease-in-out transform">
                             {/* Header */}
                             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
                                 <Link href="/" onClick={() => setShowingNavigationDropdown(false)}>
@@ -185,7 +196,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
                                     onClick={() => setShowingNavigationDropdown(false)}
-                                    className="text-gray-100 hover:bg-gray-800 rounded-lg px-3 py-3 block"
+                                    className="text-white hover:text-gray-50 rounded-lg px-3 py-3 block"
                                 >
                                     Sales
                                 </ResponsiveNavLink>
@@ -193,7 +204,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('inventory.index')}
                                     active={route().current('inventory.index')}
                                     onClick={() => setShowingNavigationDropdown(false)}
-                                    className="text-gray-100 hover:bg-gray-800 rounded-lg px-3 py-3 block"
+                                    className="text-white hover:bg-gray-50 rounded-lg px-3 py-3 block"
                                 >
                                     Inventory
                                 </ResponsiveNavLink>
@@ -201,7 +212,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('supplier.index')}
                                     active={route().current('supplier.index')}
                                     onClick={() => setShowingNavigationDropdown(false)}
-                                    className="text-gray-100 hover:bg-gray-800 rounded-lg px-3 py-3 block"
+                                    className="text-white hover:bg-gray-800 rounded-lg px-3 py-3 block"
                                 >
                                     Supplier
                                 </ResponsiveNavLink>
@@ -209,7 +220,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('dashboard')}
                                     active={route().current('dashboard')}
                                     onClick={() => setShowingNavigationDropdown(false)}
-                                    className="text-gray-100 hover:bg-gray-800 rounded-lg px-3 py-3 block"
+                                    className="text-white hover:bg-gray-800 rounded-lg px-3 py-3 block"
                                 >
                                     Report
                                 </ResponsiveNavLink>
@@ -217,7 +228,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('agent.index')}
                                     active={route().current('agent.index')}
                                     onClick={() => setShowingNavigationDropdown(false)}
-                                    className="text-gray-100 hover:bg-gray-800 rounded-lg px-3 py-3 block"
+                                    className="text-white hover:bg-gray-800 rounded-lg px-3 py-3 block"
                                 >
                                     Agent
                                 </ResponsiveNavLink>
@@ -247,7 +258,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         href={route('logout')}
                                         as="button"
                                         onClick={() => setShowingNavigationDropdown(false)}
-                                        className="text-red-400 hover:bg-gray-800 rounded-lg px-3 py-3 block w-full text-left"
+                                        className="text-red-400 bg-red-600 hover:bg-gray-800 rounded-lg px-3 py-3 block w-full text-left"
                                     >
                                         Log Out
                                     </ResponsiveNavLink>
@@ -259,8 +270,8 @@ export default function AuthenticatedLayout({ header, children }) {
             </nav>
 
             {header && (
-                <header className="bg-white shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <header className="bg-cyan-700 text-white shadow">
+                    <div className="mx-auto max-w-7xl px-4 py-3 lg:px-8">
                         {header}
                     </div>
                 </header>
