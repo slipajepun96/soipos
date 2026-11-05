@@ -86,13 +86,13 @@ export default function Login({ status, canResetPassword }) {
                                                             </span>
                                                         </label>
                                                     </div>
-                                                    {/* <a href="#" class="ms-auto text-sm font-medium text-blue-600 hover:underline ">Lost Password?</a> */}
+                                                    {/* <a href="#" class="ms-auto text-sm font-medium text-foreground hover:underline ">Lost Password?</a> */}
                                                 </div>
                                                 <div className="mt-4 flex items-center justify-end">
                                                     {canResetPassword && (
                                                         <Link
                                                             href={route('password.request')}
-                                                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                                                         >
                                                             Forgot your password?
                                                         </Link>
@@ -102,9 +102,9 @@ export default function Login({ status, canResetPassword }) {
                                                         Login
                                                     </PrimaryButton>
                                                 </div>
-                                                {/* <button type="submit" class="w-full px-5 py-3 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 sm:w-auto ">Login to your account</button> */}
+                                                {/* <button type="submit" class="w-full px-5 py-3 text-base font-medium text-center text-white bg-primary rounded-lg hover:bg-primary/90 focus:ring-4 focus:ring-blue-300 sm:w-auto ">Login to your account</button> */}
                                                 {/* <div class="text-sm font-medium text-gray-900">
-                                                    Not registered yet? <a class="text-blue-600 hover:underline">Create account</a>
+                                                    Not registered yet? <a class="text-foreground hover:underline">Create account</a>
                                                 </div> */}
                                             </form>
                                         </div>
@@ -116,7 +116,7 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <div className="mb-4 text-sm font-medium text-foreground">
                     {status}
                 </div>
             )}
@@ -174,7 +174,7 @@ export default function Login({ status, canResetPassword }) {
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         >
                             Forgot your password?
                         </Link>

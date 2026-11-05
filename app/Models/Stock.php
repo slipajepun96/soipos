@@ -37,6 +37,8 @@ class Stock extends Model
         'stock_quantity',
         'stock_unit_cost',
         'stock_total_cost',
+        'stock_unit_sales_price',
+        'stock_total_sales_price',
         'stock_expiry_date',
         'stock_remarks',
         'stock_added_by',

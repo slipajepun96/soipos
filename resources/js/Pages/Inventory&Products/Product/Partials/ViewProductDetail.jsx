@@ -167,13 +167,13 @@ export default function ViewProductDetail({ product, suppliers, product_categori
                                 <span className="font-bold">{data.product_sku_code || "-"}</span>
                             </div>
                         </div>
-                        <div>
+                        {/* <div>
                             <InputLabel
                                 htmlFor="supplier_name"
                                 value="Supplier Name"
                             />
                             <span className="font-bold">{getSupplierName(data.product_supplier_id) || "-"}</span>
-                        </div>
+                        </div> */}
                         <div>
                             <InputLabel
                                 htmlFor="category_name"

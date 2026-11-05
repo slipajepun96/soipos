@@ -41,4 +41,73 @@ class ProductCategoryController extends Controller
             return redirect()->back()->withErrors(['error' => 'An error occurred while updating this product category. Please try again.']);
         }
     }
+
+    public function updateProductCategory(Request $request): RedirectResponse
+    {
+        try {
+            $productCategory = ProductCategory::findOrFail($request->id);
+
+            $validatedData = $request->validate([
+                'product_categories_name' => 'required|string|max:255',
+                'product_categories_sub_level' => 'required|string|max:2',
+                'product_categories_parent_uuid' => 'nullable|string|max:255',
+            ]);
+
+            if ($validatedData['product_categories_sub_level'] === '1') {
+                $validatedData['product_categories_parent_uuid'] = null;
+            }
+
+            if (in_array($validatedData['product_categories_sub_level'], ['2', '3']) && empty($validatedData['product_categories_parent_uuid'])) {
+                return redirect()->back()->withErrors([
+                    'product_categories_parent_uuid' => 'Parent category is required for sub-level categories.',
+                ]);
+            }
+
+            if (!empty($validatedData['product_categories_parent_uuid']) && $validatedData['product_categories_parent_uuid'] === $productCategory->id) {
+                return redirect()->back()->withErrors([
+                    'product_categories_parent_uuid' => 'A category cannot be its own parent.',
+                ]);
+            }
+
+            $productCategory->update($validatedData);
+
+            return redirect()->back()->with([
+                'message' => 'Product Category updated successfully',
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors([
+                'error' => 'An error occurred while updating this product category. Please try again.',
+            ]);
+        }
+    }
+
+    public function deleteProductCategory(Request $request): RedirectResponse
+    {
+        try {
+            DB::beginTransaction();
+
+            ProductCategory::where('product_categories_parent_uuid', $request->id)
+                ->update(['product_categories_parent_uuid' => null]);
+
+            ProductCategory::findOrFail($request->id)->delete();
+
+            DB::commit();
+
+            return redirect()->back()->with([
+                'message' => 'Deleted Successfully',
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Database error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Failed to save transactions')
+                ->withErrors(['database' => $e->getMessage()]);
+        }
+    }
 }

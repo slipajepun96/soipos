@@ -117,7 +117,7 @@ export default function DeleteSupplier({ supplier }) {
                             />
                             {data.supplier_name}
                         </div>
-                        <div className='text-base p-3 border-2 border-red-500 text-red-500 rounded-xl'>Delete the supplier only if there is no other data associated with it. Otherwise, select Deactivate.</div>
+                        <div className='text-base p-3 border-2 border-destructive text-destructive rounded-xl'>Delete the supplier only if there is no other data associated with it. Otherwise, select Deactivate.</div>
                     </div>
                     <div className='flex gap-2'>
                         <form onSubmit={handleDeactivate} className='flex gap-2'>
@@ -126,7 +126,7 @@ export default function DeleteSupplier({ supplier }) {
                             </PrimaryButton>
                         </form>
                         <form onSubmit={handleDelete} className='flex gap-2'>
-                            <PrimaryButton disabled={processing} className='bg-red-500'>
+                            <PrimaryButton disabled={processing} className='bg-destructive hover:bg-destructive/90'>
                                 Delete
                             </PrimaryButton>
                         </form>

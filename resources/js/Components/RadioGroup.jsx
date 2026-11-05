@@ -38,7 +38,7 @@ export default forwardRef(function RadioGroup(
                     />
                     <label 
                         htmlFor={`${name}_${option.value}`}
-                        className="inline-flex items-center justify-center w-full p-5 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-500 peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                        className="inline-flex items-center justify-center w-full p-5 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 transition-colors"
                     >                           
                         <div className="block">
                             <div className="w-full text-md font-semibold">

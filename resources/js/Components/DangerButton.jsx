@@ -1,17 +1,13 @@
-export default function DangerButton({
-    className = '',
-    disabled,
-    children,
-    ...props
-}) {
+import { cn } from '@/lib/utils';
+
+export default function DangerButton({ className = '', disabled, children, ...props }) {
     return (
         <button
             {...props}
-            className={
-                `inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 active:bg-red-700 ${
-                    disabled && 'opacity-25'
-                } ` + className
-            }
+            className={cn(
+                'inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+                className,
+            )}
             disabled={disabled}
         >
             {children}

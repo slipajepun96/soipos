@@ -1,17 +1,8 @@
-export default function InputLabel({
-    value,
-    className = '',
-    children,
-    ...props
-}) {
+import { cn } from '@/lib/utils';
+
+export default function InputLabel({ value, className = '', children, ...props }) {
     return (
-        <label
-            {...props}
-            className={
-                `block text-sm font-medium text-gray-700 ` +
-                className
-            }
-        >
+        <label {...props} className={cn('block text-sm font-medium leading-none text-foreground', className)}>
             {value ? value : children}
         </label>
     );

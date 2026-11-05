@@ -3,13 +3,15 @@ import { Head, Link } from '@inertiajs/react';
 import DataTable from '@/Components/DataTable';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Plus, FileText } from 'lucide-react';
-import Alert from '@/Components/Alert';
 import { usePage } from '@inertiajs/react';
 import AddProduct from './Partials/AddProduct';
+import EditProduct from './Partials/EditProduct';
 import DeleteProduct from './Partials/DeleteProduct';
 import ViewProductDetail from './Partials/ViewProductDetail';
 import AddProductCategories from './Partials/AddProductCategories';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import EditProductCategories from './Partials/EditProductCategories';
+import DeleteProductCategories from './Partials/DeleteProductCategories';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs"
 
 export default function ProductIndex({ products , product_categories , suppliers}) {
     const { flash } = usePage().props;
@@ -81,6 +83,8 @@ export default function ProductIndex({ products , product_categories , suppliers
             accessor: 'actions',
             Cell: ({ row }) => (
                 <div className="flex space-x-2 justify-end">
+                    <EditProductCategories product_category={row} product_categories={product_categories} />
+                    <DeleteProductCategories product_category={row} />
                 </div>
             ),
         },
@@ -123,9 +127,9 @@ export default function ProductIndex({ products , product_categories , suppliers
             Cell: ({ row }) => (
                 <div className="flex flex-col space-x-2">
                     {row.is_active === 1 ? (
-                        <div className='text-sm bg-green-300 px-1 py-0.5 rounded-full font-bold text-green-700 text-center'>Active</div>
+                        <div className='text-sm bg-primary px-2 py-0.5 rounded-md font-medium text-primary-foreground text-center'>Active</div>
                     ) : (
-                        <div className='text-sm bg-red-300 px-1 py-0.5 rounded-full text-red-700 font-bold text-center'>Inactive</div>
+                        <div className='text-sm border px-2 py-0.5 rounded-md text-muted-foreground font-medium text-center'>Inactive</div>
                     )}
                 </div>
             ),
@@ -135,8 +139,8 @@ export default function ProductIndex({ products , product_categories , suppliers
             accessor: 'actions',
             Cell: ({ row }) => (
                 <div className="flex space-x-2 justify-end">
-                    {/* <PrimaryButton>Edit</PrimaryButton> */}
                     <ViewProductDetail product={ row } suppliers={ suppliers } product_categories={ product_categories }/>
+                    <EditProduct product={row} product_categories={product_categories} />
                     <DeleteProduct product={row} />
                 </div>
                 
@@ -156,12 +160,6 @@ export default function ProductIndex({ products , product_categories , suppliers
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">
-                    {flash?.message && flash.message.trim() !== '' && (
-                        <Alert 
-                            type={flash?.type || 'info'} 
-                            message={flash.message}
-                        />
-                    )}
                     <Tabs defaultValue="product" className="w-full px-2">
                         <TabsList>
                             <TabsTrigger value="product">Product</TabsTrigger>
@@ -175,12 +173,6 @@ export default function ProductIndex({ products , product_categories , suppliers
                             <DataTable columns={columns} data={products} />
                         </TabsContent>
                         <TabsContent value="productCategories">
-                            {flash?.message && flash.message.trim() !== '' && (
-                                <Alert 
-                                    type={flash?.type || 'info'} 
-                                    message={flash.message}
-                                />
-                            )}
                             <div className='py-2'>
                                     <AddProductCategories product_categories={product_categories} />                   
                             </div>

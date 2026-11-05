@@ -58,6 +58,39 @@ class ProductController extends Controller
 
     }
 
+    public function updateProduct(Request $request): RedirectResponse
+    {
+        try {
+            $product = Product::findOrFail($request->id);
+
+            $validatedData = $request->validate([
+                'product_category_id' => 'required|string|max:255',
+                'product_name' => 'required|string|max:255',
+                'product_unit' => 'required|string|max:50',
+                'product_sku_code' => 'nullable|string|max:100',
+                'product_img_address' => 'nullable|string|max:255',
+                'product_code' => 'nullable|string|max:100',
+                'product_description' => 'nullable|string|max:1000',
+                'product_price' => 'required|numeric',
+                'product_num_of_measure' => 'required|numeric',
+                'product_supplier_id' => 'nullable|string|max:255',
+                'product_low_stock_limit' => 'required|numeric',
+            ]);
+
+            $product->update($validatedData);
+
+            return redirect()->back()->with([
+                'message' => 'Product updated successfully',
+                'type' => 'success',
+            ]);
+        }
+        catch (\Exception $e) {
+            return redirect()->back()->withErrors([
+                'error' => 'An error occurred while updating this product. Please try again.',
+            ]);
+        }
+    }
+
     public function deactivateProduct(Request $request): RedirectResponse
     {
         // dd($request->all());

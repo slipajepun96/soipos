@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stock_docs', function (Blueprint $table) {
-            $table->id();
+            // Document number (e.g. GRN260000001) is used as the primary key.
+            $table->string('id', 20)->primary();
             $table->timestamps();
             // $table->string('stock_doc_name');
             $table->string('stock_doc_type');

@@ -3,7 +3,6 @@ import { Head, Link } from '@inertiajs/react';
 import DataTable from '@/Components/DataTable';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Plus, FileText } from 'lucide-react';
-import Alert from '@/Components/Alert';
 import { usePage } from '@inertiajs/react';
 import AddSupplier from './Partials/AddSupplier';
 import EditSupplier from './Partials/EditSupplier';
@@ -43,9 +42,9 @@ export default function SupplierIndex({ suppliers }) {
             Cell: ({ row }) => (
                 <div className="flex flex-col space-x-2">
                     {row.is_active === 1 ? (
-                        <div className='text-sm bg-green-300 px-1 py-0.5 rounded-full font-bold text-green-700 text-center'>Active</div>
+                        <div className='text-sm bg-primary px-2 py-0.5 rounded-md font-medium text-primary-foreground text-center'>Active</div>
                     ) : (
-                        <div className='text-sm bg-red-300 px-1 py-0.5 rounded-full text-red-700 font-bold text-center'>Inactive</div>
+                        <div className='text-sm border px-2 py-0.5 rounded-md text-muted-foreground font-medium text-center'>Inactive</div>
                     )}
                 </div>
             ),
@@ -76,12 +75,6 @@ export default function SupplierIndex({ suppliers }) {
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">
-                    {flash?.message && flash.message.trim() !== '' && (
-                        <Alert 
-                            type={flash?.type || 'info'} 
-                            message={flash.message}
-                        />
-                    )}
 
                     {/* <div className="overflow-hidden sm:rounded-lg m-2 p-2 border-b-2">
                         <div className='font-bold text-2xl mb-2'>Products</div>

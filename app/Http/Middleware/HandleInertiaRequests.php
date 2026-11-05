@@ -34,6 +34,14 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Controllers flash either message+type, or success / error.
+            'flash' => fn () => [
+                'message' => $request->session()->get('message')
+                    ?? $request->session()->get('success')
+                    ?? $request->session()->get('error'),
+                'type' => $request->session()->get('type')
+                    ?? ($request->session()->has('error') ? 'error' : ($request->session()->has('success') ? 'success' : null)),
+            ],
         ];
     }
 }

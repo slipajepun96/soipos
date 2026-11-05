@@ -138,7 +138,7 @@ export default function AddProductCategories({ product_categories }) {
                                     htmlFor="product_categories_name"
                                     value={
                                         <>
-                                            Name of Product Category <span className="text-red-500">*</span>
+                                            Name of Product Category <span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -163,7 +163,7 @@ export default function AddProductCategories({ product_categories }) {
                                     htmlFor="product_categories_sub_level"
                                     value={
                                     <>
-                                        Level Of Category <span className="text-red-500">*</span>
+                                        Level Of Category <span className="text-destructive">*</span>
                                     </>
                                 }
                                 />
@@ -193,7 +193,7 @@ export default function AddProductCategories({ product_categories }) {
                                     htmlFor="product_categories_parent_uuid"
                                     value={
                                     <>
-                                        Parent of Product Category<span className="text-red-500">*</span>
+                                        Parent of Product Category<span className="text-destructive">*</span>
                                     </>
                                 }
                                 />

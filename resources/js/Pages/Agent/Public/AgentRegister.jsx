@@ -112,7 +112,7 @@ export default function AgentRegister({ }) {
                                                     htmlFor="agent_name"
                                                     value={
                                                         <>
-                                                            Nama<span className="text-red-500">*</span>
+                                                            Nama<span className="text-destructive">*</span>
                                                         </>
                                                     }
                                                 />
@@ -138,7 +138,7 @@ export default function AgentRegister({ }) {
                                                     htmlFor="agent_nric"
                                                     value={
                                                         <>
-                                                            No. Kad Pengenalan<span className="text-red-500">*</span>
+                                                            No. Kad Pengenalan<span className="text-destructive">*</span>
                                                         </>
                                                     }
                                                 />
@@ -162,7 +162,7 @@ export default function AgentRegister({ }) {
                                                     htmlFor="agent_phone_num"
                                                     value={
                                                         <>
-                                                            No. Telefon<span className="text-red-500">*</span>
+                                                            No. Telefon<span className="text-destructive">*</span>
                                                         </>
                                                     }
                                                 />
@@ -186,7 +186,7 @@ export default function AgentRegister({ }) {
                                                     htmlFor="agent_email"
                                                     value={
                                                         <>
-                                                            Alamat E-Mel<span className="text-red-500">*</span>
+                                                            Alamat E-Mel<span className="text-destructive">*</span>
                                                         </>
                                                     }
                                                 />
@@ -211,7 +211,7 @@ export default function AgentRegister({ }) {
                                                     htmlFor="agent_address"
                                                     value={
                                                         <>
-                                                            Alamat <span className="text-red-500">*</span>
+                                                            Alamat <span className="text-destructive">*</span>
                                                         </>
                                                     }
                                                 />

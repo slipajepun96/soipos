@@ -1,95 +1,79 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { Input } from '@/Components/ui/input';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table';
+import { cn } from '@/lib/utils';
 
-export default function DataTable({ columns, data, className = "", showSearch = true }) {
+const columnKey = (column, index) =>
+    (Array.isArray(column.accessor) ? column.accessor.join('-') : column.accessor) || column.Header || index;
+
+export default function DataTable({ columns, data, className = '', showSearch = true }) {
     const [search, setSearch] = useState('');
+    const term = search.toLowerCase();
 
-    // Filter data based on search input
     const filteredData = data.filter((row) =>
         columns.some((column) => {
-            if (Array.isArray(column.accessor)) {
-                // If accessor is an array, check all fields in the array
-                return column.accessor.some((key) =>
-                    row[key]?.toString().toLowerCase().includes(search.toLowerCase())
-                );
-            } else {
-                // Otherwise, check the single accessor field
-                return row[column.accessor]
-                    ?.toString()
-                    .toLowerCase()
-                    .includes(search.toLowerCase());
-            }
-        })
+            const keys = Array.isArray(column.accessor) ? column.accessor : [column.accessor];
+            return keys.some((key) => row[key]?.toString().toLowerCase().includes(term));
+        }),
     );
 
     return (
-        <div className={className}>
-            {/* Search Input */}
+        <div className={cn('overflow-hidden rounded-xl border bg-card', className)}>
             {showSearch && (
-                <div className="mb-4">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
+                <div className="border-b p-4">
+                    <div className="relative w-full sm:max-w-xs">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search…"
+                            className="pl-8"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
                 </div>
             )}
 
-            {/* Table */}
-            
-            <div className="overflow-x-auto rounded-2xl border border-gray-200">
-                <table className="min-w-full border-collapse bg-white">
-                    <thead>
-                        <tr>
-                            {columns.map((column) => (
-                                <th
-                                    key={column.accessor || column.Header}
-                                    className="p-4 text-left text-xs border-gray-200 bg-gray-50 text-gray-500 uppercase border-b"
-                                >
-                                    {column.Header}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredData.map((row, rowIndex) => (
-                            <tr key={rowIndex} className="hover:bg-gray-50">
-                                {columns.map((column) => (
-                                    <td
-                                        key={column.accessor || column.Header}
-                                        className="px-4 py-2 border-b border-gray-200"
-                                    >
-                                         {/* Check if the column has a custom Cell property */}
-                                         {column.Cell
-                                            ? column.Cell({ row }) // Render custom Cell
-                                            : row[column.accessor]} {/* Render default accessor */}
-                                    </td>
-                                ))}
-                            </tr>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        {columns.map((column, index) => (
+                            <TableHead key={columnKey(column, index)} className="first:pl-4 last:pr-4">
+                                {column.Header}
+                            </TableHead>
                         ))}
-                        {filteredData.length === 0 && (
-                            <tr>
-                                <td
-                                    colSpan={columns.length}
-                                    className="px-4 py-2 text-center text-gray-500"
-                                >
-                                    No data found
-                                </td>
-                            </tr>
-                        )}
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {filteredData.map((row, rowIndex) => (
+                        <TableRow key={row.id ?? rowIndex}>
+                            {columns.map((column, index) => (
+                                <TableCell key={columnKey(column, index)} className="first:pl-4 last:pr-4">
+                                    {column.Cell ? column.Cell({ row }) : row[column.accessor]}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    ))}
+                    {filteredData.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">
+                                No data found
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
 
-                        <tr>
-                            <div className=" text-sm text-gray-600 px-4 py-2 ">
-                                Showing <b>{filteredData.length}</b> of <b>{data.length}</b> rows.
-                            </div>
-                        </tr>
-                    </tbody>
-                </table>
+            <div className="border-t px-4 py-3 text-sm text-muted-foreground">
+                Showing {filteredData.length} of {data.length} rows
             </div>
-            {/* Row Count Summary */}
-
-
         </div>
     );
 }

@@ -112,7 +112,7 @@ export default forwardRef(function FileInput(
                         type="button"
                         onClick={() => localRef.current?.click()}
                         className={
-                            'w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-md hover:border-indigo-500 hover:bg-gray-50 transition-colors ' +
+                            'w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-md hover:border-ring hover:bg-gray-50 transition-colors ' +
                             className
                         }
                     >
@@ -151,14 +151,14 @@ export default forwardRef(function FileInput(
                                 <button
                                     type="button"
                                     onClick={() => localRef.current?.click()}
-                                    className="px-3 py-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                                    className="px-3 py-1 text-xs text-foreground hover:text-foreground font-medium"
                                 >
                                     Tukar
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleRemove}
-                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                                    className="p-1 text-destructive hover:text-destructive hover:bg-red-50 rounded"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -169,7 +169,7 @@ export default forwardRef(function FileInput(
             </div>
             
             {error && (
-                <p className="mt-1 text-sm text-red-600">{error}</p>
+                <p className="mt-1 text-sm text-destructive">{error}</p>
             )}
             
             {accept && !selectedFile && (

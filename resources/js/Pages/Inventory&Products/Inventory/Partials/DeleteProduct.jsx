@@ -95,7 +95,7 @@ export default function DeleteProduct({ product }) {
                             /> */}
                             {data.product_name} -  {product.product_num_of_measure} {product.product_unit}
                         </div>
-                        <div className='text-base p-3 bg-amber-300 text-black rounded-sm'>Delete the product only if there is no other data associated with it. Otherwise, select Deactivate.</div>
+                        <div className='text-base p-3 border bg-muted text-foreground rounded-sm'>Delete the product only if there is no other data associated with it. Otherwise, select Deactivate.</div>
                     </div>
                     <div className='flex gap-2'>
                         <form onSubmit={handleDeactivate} className='flex gap-2'>
@@ -104,7 +104,7 @@ export default function DeleteProduct({ product }) {
                             </PrimaryButton>
                         </form>
                         <form onSubmit={handleDelete} className='flex gap-2'>
-                            <PrimaryButton disabled={processing} className='bg-red-500'>
+                            <PrimaryButton disabled={processing} className='bg-destructive hover:bg-destructive/90'>
                                 Delete
                             </PrimaryButton>
                         </form>

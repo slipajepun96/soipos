@@ -3,7 +3,6 @@ import { Head, Link } from '@inertiajs/react';
 import DataTable from '@/Components/DataTable';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Plus, FileText } from 'lucide-react';
-import Alert from '@/Components/Alert';
 import { usePage } from '@inertiajs/react';
 import AddSupplier from './Partials/AddSupplier';
 import EditSupplier from './Partials/EditSupplier';
@@ -45,11 +44,11 @@ export default function AgentIndex({ agents }) {
                     {row.agent_status === 'pending' ? (
                         <div className='text-sm bg-gray-200 px-1 py-0.5 rounded-full font-bold text-gray-700 text-center'>Pending</div>
                     ) : row.agent_status === 'verified' ? (
-                        <div className='text-sm bg-blue-300 px-1 py-0.5 rounded-full font-bold text-blue-700 text-center'>Verified</div>
+                        <div className='text-sm bg-primary px-2 py-0.5 rounded-md font-medium text-primary-foreground text-center'>Verified</div>
                     ) : row.agent_status === 'inactive' ? (
-                        <div className='text-sm bg-red-300 px-1 py-0.5 rounded-full text-red-700 font-bold text-center'>Inactive</div>
+                        <div className='text-sm border px-2 py-0.5 rounded-md text-muted-foreground font-medium text-center'>Inactive</div>
                     ) : (
-                        <div className='text-sm bg-yellow-300 px-1 py-0.5 rounded-full font-bold text-yellow-700 text-center'>Unknown</div>
+                        <div className='text-sm bg-secondary px-2 py-0.5 rounded-md font-medium text-secondary-foreground text-center'>Unknown</div>
                         )
                     }
 
@@ -81,12 +80,6 @@ export default function AgentIndex({ agents }) {
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">
-                    {flash?.message && flash.message.trim() !== '' && (
-                        <Alert 
-                            type={flash?.type || 'info'} 
-                            message={flash.message}
-                        />
-                    )}
 
                     <div className='px-4'>
                         {/* <AddSupplier /> */}

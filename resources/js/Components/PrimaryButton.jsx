@@ -1,15 +1,15 @@
 import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
 const PrimaryButton = forwardRef(({ className = '', disabled, children, ...props }, ref) => {
     return (
         <button
             {...props}
             ref={ref}
-            className={
-                `inline-flex items-center rounded-lg border border-transparent bg-gray-700 px-3 py-1.5 font-semibold text-white transition duration-150 ease-in-out hover:bg-blue-800 focus:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900 ${
-                    disabled && 'opacity-25'
-                } ` + className
-            }
+            className={cn(
+                'inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+                className,
+            )}
             disabled={disabled}
         >
             {children}

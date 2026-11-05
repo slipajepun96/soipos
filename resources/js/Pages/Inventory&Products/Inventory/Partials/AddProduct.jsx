@@ -112,7 +112,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_name"
                                     value={
                                         <>
-                                            Name of Product<span className="text-red-500">*</span>
+                                            Name of Product<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -139,7 +139,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_num_of_measure"
                                     value={
                                         <>
-                                            Number of Measure<span className="text-red-500">*</span>
+                                            Number of Measure<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -164,7 +164,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_unit"
                                     value={
                                         <>
-                                            Unit Of Measure<span className="text-red-500">*</span>
+                                            Unit Of Measure<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -197,7 +197,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_price"
                                     value={
                                         <>
-                                            Sales Price (RM)<span className="text-red-500">*</span>
+                                            Sales Price (RM)<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -225,7 +225,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     value={
                                         <>
                                             SKU Code
-                                            {/* <span className="text-red-500">*</span> */}
+                                            {/* <span className="text-destructive">*</span> */}
                                         </>
                                     }
                                 />
@@ -251,7 +251,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     value={
                                         <>
                                             Barcode
-                                            {/* <span className="text-red-500">*</span> */}
+                                            {/* <span className="text-destructive">*</span> */}
                                         </>
                                     }
                                 />
@@ -278,7 +278,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_category_id"
                                     value={
                                         <>
-                                            Product Category<span className="text-red-500">*</span>
+                                            Product Category<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -314,7 +314,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_supplier_id"
                                     value={
                                         <>
-                                            Supplier<span className="text-red-500">*</span>
+                                            Supplier<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -350,7 +350,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_low_stock_limit"
                                     value={
                                         <>
-                                            Low Stock Limit<span className="text-red-500">*</span>
+                                            Low Stock Limit<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />

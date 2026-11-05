@@ -113,7 +113,7 @@ export default function EditSupplier({ supplier }) {
                                     htmlFor="supplier_name"
                                     value={
                                         <>
-                                            Supplier Name <span className="text-red-500">*</span>
+                                            Supplier Name <span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -139,7 +139,7 @@ export default function EditSupplier({ supplier }) {
                                         htmlFor="supplier_rob_num"
                                         value={
                                             <>
-                                                ROB / ROC Number <span className="text-red-500">*</span>
+                                                ROB / ROC Number <span className="text-destructive">*</span>
                                             </>
                                         }
                                     />
@@ -189,7 +189,7 @@ export default function EditSupplier({ supplier }) {
                                         htmlFor="supplier_phone_num"
                                         value={
                                         <>
-                                            Phone Number <span className="text-red-500">*</span>
+                                            Phone Number <span className="text-destructive">*</span>
                                         </>
                                     }
                                     />
@@ -214,7 +214,7 @@ export default function EditSupplier({ supplier }) {
                                         htmlFor="supplier_email"
                                         value={
                                         <>
-                                            Email Address <span className="text-red-500">*</span>
+                                            Email Address <span className="text-destructive">*</span>
                                         </>
                                     }
                                     />
@@ -243,7 +243,7 @@ export default function EditSupplier({ supplier }) {
                                     htmlFor="supplier_address"
                                     value={
                                         <>
-                                            Address <span className="text-red-500">*</span>
+                                            Address <span className="text-destructive">*</span>
                                         </>
                                     }
                                 />

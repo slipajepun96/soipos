@@ -1,24 +1,29 @@
+import { useEffect, useState } from 'react';
+import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
+import { Alert as UiAlert, AlertDescription } from '@/Components/ui/alert';
+
 export default function Alert({ type, message }) {
     const [isVisible, setIsVisible] = useState(true);
 
+    useEffect(() => setIsVisible(true), [message]);
+
     if (!message || !isVisible) return null;
 
-    const alertClasses = {
-        success: 'bg-green-100 border-green-400 text-green-700',
-        error: 'bg-red-100 border-red-400 text-red-700',
-        warning: 'bg-yellow-100 border-yellow-400 text-yellow-700'
-    };
+    const isError = type === 'error';
+    const Icon = isError ? AlertCircle : type === 'success' ? CheckCircle2 : Info;
 
     return (
-        <div className={`border px-4 py-3 rounded relative ${alertClasses[type]} flex justify-between items-center`} role="alert">
-            <span className="block sm:inline">{message}</span>
+        <UiAlert variant={isError ? 'destructive' : 'default'} className="my-2 pr-10">
+            <Icon className="h-4 w-4" />
+            <AlertDescription>{message}</AlertDescription>
             <button
+                type="button"
                 onClick={() => setIsVisible(false)}
-                className="absolute top-0 right-0 px-4 py-3"
+                className="absolute right-3 top-3 rounded-sm opacity-60 hover:opacity-100"
                 aria-label="Close alert"
             >
-                <span className="text-xl">&times;</span>
+                <X className="h-4 w-4" />
             </button>
-        </div>
+        </UiAlert>
     );
 }
