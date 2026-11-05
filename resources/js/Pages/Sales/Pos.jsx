@@ -252,7 +252,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
             router.reload({ only: ['availableStock'] });
         } catch (error) {
             const bag = error.response?.data?.errors;
-            setErrors(bag ? [...new Set(Object.values(bag).flat())] : [error.response?.data?.message || 'Checkout failed. Please try again.']);
+            setErrors(bag ? [...new Set(Object.values(bag).flat())] : [errorMessage(error)]);
             toast.error('Sale not saved', { description: errorMessage(error) });
         } finally {
             setProcessing(false);

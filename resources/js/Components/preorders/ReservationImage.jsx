@@ -85,6 +85,16 @@ const ReservationCard = forwardRef(function ReservationCard({ shop, session, ord
     );
 });
 
+function pictureError(e) {
+    const text = `${e?.name || ''} ${e?.message || ''}`;
+    if (/dynamically imported module|Loading chunk|Failed to fetch/i.test(text)) return 'The picture tool could not load (check your internet connection).';
+    if (e?.name === 'SecurityError') return 'Your browser blocked reading the page to make a picture.';
+    if (e?.message === 'empty') return 'Your browser returned an empty picture.';
+    if (/memory|too large|canvas/i.test(text)) return 'Your phone ran out of memory making the picture.';
+    if (e?.name === 'NotAllowedError') return 'Your browser blocked saving the file.';
+    return `Your browser could not make the picture${e?.message ? ` (${e.message})` : ''}.`;
+}
+
 /** "Save reservation" button: turns the card into a PNG and shares or downloads it. */
 export default function SaveReservationButton({ shop, session, order }) {
     const cardRef = useRef(null);
@@ -117,8 +127,8 @@ export default function SaveReservationButton({ shop, session, order }) {
             a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 10000);
             toast.success('Reservation picture saved', { description: 'Check your Downloads or Photos.' });
-        } catch {
-            toast.error('Could not create the picture', { description: 'Please take a screenshot of this page instead.' });
+        } catch (e) {
+            toast.error('Could not create the picture', { description: `${pictureError(e)} Take a screenshot of this page instead.` });
         } finally {
             setBusy(false);
         }

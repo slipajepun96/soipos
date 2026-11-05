@@ -32,7 +32,7 @@ export default function CollectPreorderDialog({ open, onOpenChange, paymentMetho
         if (initialOrderId) {
             axios.get(route('pos.preorders.show', initialOrderId))
                 .then(({ data }) => setOrder(data.order))
-                .catch(() => { setOrder(null); toast.error('That pre-order could not be found.'); });
+                .catch((error) => { setOrder(null); toast.error('Could not open the pre-order', { description: errorMessage(error) }); });
         }
     }, [open, initialOrderId]);
 
@@ -132,7 +132,7 @@ function CollectStep({ order, paymentMethods, onBack, onCollected }) {
             onCollected(data.sale);
         } catch (error) {
             const bag = error.response?.data?.errors;
-            setErrors(bag ? [...new Set(Object.values(bag).flat())] : [error.response?.data?.message || 'Could not collect. Please try again.']);
+            setErrors(bag ? [...new Set(Object.values(bag).flat())] : [errorMessage(error)]);
             toast.error('Not collected', { description: errorMessage(error) });
         } finally {
             setProcessing(false);
