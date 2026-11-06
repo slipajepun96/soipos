@@ -71,7 +71,7 @@
                 <div class="value">{{ $product->product_sku_code ?: '-' }}</div>
             </td>
             <td style="width: 25%">
-                <div class="label">Unit</div>
+                <div class="label">Size</div>
                 <div class="value">{{ $product->product_num_of_measure }} {{ $unit }}</div>
             </td>
         </tr>

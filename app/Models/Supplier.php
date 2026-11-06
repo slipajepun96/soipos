@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -9,6 +10,7 @@ use Illuminate\Support\Str;
 
 class Supplier extends Model
 {
+    use BelongsToStore;
     use HasFactory, Notifiable;
 
     protected $keyType = 'string'; // Set the key type to UUID
@@ -18,7 +20,7 @@ class Supplier extends Model
     {
         static::creating(function($model)
         {
-            $model->id = Str::uuid();
+            $model->id = (string) Str::uuid();
             $model->is_active = '1';
         });
     }

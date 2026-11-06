@@ -12,7 +12,7 @@ import DateTimePicker from '@/Components/inventory/DateTimePicker';
 import TimePicker, { formatTime, parseTime } from '@/Components/inventory/TimePicker';
 import FormField from '@/Components/inventory/FormField';
 import ProductCombobox from '@/Components/inventory/ProductCombobox';
-import { today } from '@/lib/format';
+import { today, productLabel } from '@/lib/format';
 
 const selectClass = 'h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:border-input focus:ring-1 focus:ring-ring';
 let nextKey = 0;
@@ -65,7 +65,7 @@ export default function SessionForm({ session = null, orderedUnits = {}, product
         const item = data.items.find((i) => i.key === key);
         updateItem(key, {
             product_id: product.id,
-            label: item.label || product?.product_name || '',
+            label: item.label || productLabel(product) || '',
             price: item.price || (product?.product_price ? String(product.product_price) : ''),
         });
     };
@@ -148,7 +148,7 @@ export default function SessionForm({ session = null, orderedUnits = {}, product
                     <CardHeader>
                         <CardTitle>Items customers can order</CardTitle>
                         <CardDescription>
-                            Each item is a fixed pack, e.g. "Strawberry 1 kg" uses 1 kg of the product per unit ordered. Stock is deducted when the order is collected.
+                            Each item is a fixed pack counted in stock units, e.g. "Twin pack" with 2 stock units each uses 2 units of the product per order. Stock is deducted when the order is collected.
                             Use a custom item for things not in your product list: the sale is recorded but no stock out.
                         </CardDescription>
                     </CardHeader>
@@ -193,11 +193,11 @@ export default function SessionForm({ session = null, orderedUnits = {}, product
                                     <FormField label="Name on form" htmlFor={`label-${item.key}`} error={itemError(index, 'label')} className="sm:col-span-3 lg:col-span-3">
                                         <Input id={`label-${item.key}`} value={item.label} onChange={(e) => updateItem(item.key, { label: e.target.value })} placeholder="e.g. Strawberry 1 kg" />
                                     </FormField>
-                                    <FormField label={`Qty per unit${product ? ` (${product.product_unit})` : ''}`} htmlFor={`uq-${item.key}`} error={itemError(index, 'unit_quantity')} className="sm:col-span-2 lg:col-span-2">
+                                    <FormField label="Stock units each" htmlFor={`uq-${item.key}`} error={itemError(index, 'unit_quantity')} className="sm:col-span-2 lg:col-span-2">
                                         {item.custom ? (
                                             <Input id={`uq-${item.key}`} disabled value="" placeholder="Not tracked" className="text-right" />
                                         ) : (
-                                            <Input id={`uq-${item.key}`} type="number" min="0" step="any" value={item.unit_quantity} onChange={(e) => updateItem(item.key, { unit_quantity: e.target.value })} className="text-right tabular-nums" />
+                                            <Input id={`uq-${item.key}`} type="number" min="1" step="1" inputMode="numeric" value={item.unit_quantity} onChange={(e) => updateItem(item.key, { unit_quantity: e.target.value })} className="text-right tabular-nums" />
                                         )}
                                     </FormField>
                                     <FormField label="Price (RM)" htmlFor={`price-${item.key}`} error={itemError(index, 'price')} className="sm:col-span-2 lg:col-span-1">

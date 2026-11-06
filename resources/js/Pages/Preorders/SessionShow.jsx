@@ -31,7 +31,7 @@ import {
 } from '@/Components/ui/dropdown-menu';
 import InventoryPage from '@/Components/inventory/InventoryPage';
 import { FormStatusBadge, OrderStatusBadge, PublicLink, pickupText } from '@/Components/preorders/PreorderBits';
-import { formatMoney, formatQty } from '@/lib/format';
+import { formatMoney, formatQty, formatUnits } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 const STATUS_FILTERS = [
@@ -333,7 +333,7 @@ function PackTab({ summary }) {
                                         <div className="font-medium">{item.label}</div>
                                         <div className="text-xs text-muted-foreground">
                                             {item.tracked
-                                                ? `${item.product_name} · ${formatQty(item.unit_quantity)} ${item.product_unit} each`
+                                                ? `${item.product_name}${item.unit_quantity > 1 ? ` · ${formatUnits(item.unit_quantity)} each` : ''}`
                                                 : 'Custom item · no stock'} · RM {formatMoney(item.price)}
                                         </div>
                                     </TableCell>
@@ -341,7 +341,7 @@ function PackTab({ summary }) {
                                     <TableCell className="text-right tabular-nums">{item.units}</TableCell>
                                     <TableCell className="text-right text-lg font-semibold tabular-nums">{item.pending_units}</TableCell>
                                     <TableCell className="hidden text-right tabular-nums sm:table-cell">
-                                        {item.tracked ? `${formatQty(item.stock_needed)} ${item.product_unit}` : <span className="text-muted-foreground">Not tracked</span>}
+                                        {item.tracked ? formatUnits(item.stock_needed) : <span className="text-muted-foreground">Not tracked</span>}
                                     </TableCell>
                                     <TableCell className="hidden pr-6 text-right tabular-nums md:table-cell">
                                         {item.quota === null ? '—' : Math.max(0, item.quota - item.units)}
@@ -365,11 +365,11 @@ function PackTab({ summary }) {
                             <div className="min-w-0">
                                 <p className="truncate font-medium">{p.product_name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    Need {formatQty(p.needed)} · have {formatQty(p.on_hand)} {p.product_unit}
+                                    Need {formatUnits(p.needed)} · have {formatUnits(p.on_hand)}
                                 </p>
                             </div>
                             {p.short > 0
-                                ? <Badge variant="destructive" className="shrink-0">Short {formatQty(p.short)} {p.product_unit}</Badge>
+                                ? <Badge variant="destructive" className="shrink-0">Short {formatUnits(p.short)}</Badge>
                                 : <Badge variant="secondary" className="shrink-0">Enough</Badge>}
                         </div>
                     ))}

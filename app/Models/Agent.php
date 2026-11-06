@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -9,6 +10,7 @@ use Illuminate\Support\Str;
 
 class Agent extends Model
 {
+    use BelongsToStore;
     use HasFactory, Notifiable;
 
     protected $keyType = 'string'; // Set the key type to UUID
@@ -33,7 +35,7 @@ class Agent extends Model
         $prefix = 'DA' . $currentYear;
         
         // Find the highest existing ID across ALL years to continue sequence
-        $lastAgent = self::where('id', 'REGEXP', '^DA[0-9]{2}[0-9]{6}$')
+        $lastAgent = self::withoutGlobalScope('store')->where('id', 'REGEXP', '^DA[0-9]{2}[0-9]{6}$')   // ids are global
                          ->orderByRaw('CAST(SUBSTRING(id, 5) AS UNSIGNED) DESC')
                          ->first();
         

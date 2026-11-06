@@ -66,3 +66,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* PWA: keep content clear of the phone's rounded corners, notch and home indicator. */
+@layer utilities {
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  /* bottom of every page */
+  .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 2rem); }
+  /* bars fixed to the bottom of the screen */
+  .pb-safe-bar { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem); }
+  /* pages with a fixed bottom bar (content must scroll past it) */
+  .pb-safe-pos { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); }
+}

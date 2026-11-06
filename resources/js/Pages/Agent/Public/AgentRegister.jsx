@@ -20,7 +20,7 @@ import {
 } from "@/Components/ui/select"
 import { useForm } from '@inertiajs/react';
 
-export default function AgentRegister({ }) {
+export default function AgentRegister({ store }) {
     const { flash } = usePage().props;
 
         const { data, setData, post, processing, errors, reset } = useForm({
@@ -39,7 +39,7 @@ export default function AgentRegister({ }) {
             console.log('Submitting data:', data);
             e.preventDefault();
     
-            post(route('agent.register.save'), {
+            post(route('agent.register.save', store.code), {
                 onSuccess: () => {
                     reset(
                         'agent_name',
@@ -64,11 +64,11 @@ export default function AgentRegister({ }) {
         <AgentLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Agent
+                    Agent registration · {store.name}
                 </h2>
             }
         >
-            <Head title="Inventory & Products" />
+            <Head title={`Agent registration · ${store.name}`} />
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">

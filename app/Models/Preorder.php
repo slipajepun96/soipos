@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Preorder extends Model
 {
+    use BelongsToStore;
     use HasUuids;
 
     protected $fillable = [
@@ -42,7 +44,7 @@ class Preorder extends Model
     /** Next order number, e.g. PO000123. Call inside a transaction. */
     public static function nextNumber(): string
     {
-        $last = (int) static::lockForUpdate()
+        $last = (int) static::withoutGlobalScope('store')->lockForUpdate()   // unique across stores
             ->selectRaw('MAX(CAST(SUBSTRING(order_no, 3) AS UNSIGNED)) as n')
             ->value('n');
 

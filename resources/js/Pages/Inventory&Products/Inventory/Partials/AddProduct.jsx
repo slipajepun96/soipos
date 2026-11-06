@@ -20,6 +20,7 @@ import {
     SelectValue,
 } from "@/Components/ui/select"
 import { useForm } from '@inertiajs/react';
+import ProductImageInput from '@/Components/inventory/ProductImageInput';
 // import { Input } from '@/Components/ui/input';
 // import { Label } from '@/Components/ui/label';
 
@@ -31,7 +32,8 @@ export default function AddProduct({ product_categories, suppliers }) {
         product_name: '',
         product_unit: '',
         product_sku_code: '',
-        product_img_address: '',
+        product_image: null,
+        remove_image: false,
         product_code: '',
         product_description: '',
         product_price: '',
@@ -54,7 +56,8 @@ export default function AddProduct({ product_categories, suppliers }) {
                     'product_name',
                     'product_unit',
                     'product_sku_code',
-                    'product_img_address',
+                    'product_image',
+                    'remove_image',
                     'product_code',
                     'product_description',
                     'product_price',
@@ -80,7 +83,8 @@ export default function AddProduct({ product_categories, suppliers }) {
                 'product_name',
                 'product_unit',
                 'product_sku_code',
-                'product_img_address',
+                'product_image',
+                    'remove_image',
                 'product_code',
                 'product_description',
                 'product_price',
@@ -97,7 +101,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                     Add New Product
                 </PrimaryButton>
             </DialogTrigger>
-            <DialogContent className="max-w-xl">
+            <DialogContent className="max-h-[92dvh] max-w-xl overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Add New Product</DialogTitle>
                     {/* <DialogDescription>
@@ -106,6 +110,16 @@ export default function AddProduct({ product_categories, suppliers }) {
                 </DialogHeader>
                 <form onSubmit={submit}>
                     <div className="items-center space-y-2">
+                        <div>
+                            <InputLabel htmlFor="product_image" value="Photo" />
+                            <div className="mt-1">
+                                <ProductImageInput
+                                    currentUrl={null}
+                                    error={errors.product_image}
+                                    onChange={({ file, remove }) => setData((d) => ({ ...d, product_image: file, remove_image: remove }))}
+                                />
+                            </div>
+                        </div>
                         <div className="grid flex-1 gap-2">
                             <div>
                                 <InputLabel
@@ -133,13 +147,14 @@ export default function AddProduct({ product_categories, suppliers }) {
                                 />
                             </div>
                         </div>
+                        <p className="text-xs text-muted-foreground">Size only describes one unit (e.g. 500 Milliliter bottle). Stock, sales and orders are always counted in units.</p>
                         <div className="grid flex-1 gap-2 md:grid-cols-3">
                             <div>
                                 <InputLabel
                                     htmlFor="product_num_of_measure"
                                     value={
                                         <>
-                                            Number of Measure<span className="text-destructive">*</span>
+                                            Size<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -164,7 +179,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_unit"
                                     value={
                                         <>
-                                            Unit Of Measure<span className="text-destructive">*</span>
+                                            Size Unit<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -173,7 +188,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                         setData('product_unit', value)
                                 }>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select UOM" />
+                                        <SelectValue placeholder="Select size unit" />
                                     </SelectTrigger>
                                     <SelectContent 
                                         id="product_unit"
@@ -188,7 +203,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     </SelectContent>
                                 </Select>
                                 <InputError
-                                    message={errors.product_name}
+                                    message={errors.product_unit}
                                     className="mt-2"
                                 />
                             </div>
@@ -350,7 +365,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_low_stock_limit"
                                     value={
                                         <>
-                                            Low Stock Limit<span className="text-destructive">*</span>
+                                            Low Stock Limit (units)<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />

@@ -36,8 +36,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import CollectPreorderDialog from '@/Components/preorders/CollectPreorderDialog';
 import BarcodeScannerDialog from '@/Components/sales/BarcodeScannerDialog';
-import { formatDate, formatMoney, formatQty } from '@/lib/format';
+import { formatDate, formatMoney, formatQty, formatUnits, productLabel, wholeUnits } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import DuitNowQr from '@/Components/sales/DuitNowQr';
+import { PaymentProofInput, PROOF_METHODS, attachProofToNewSale } from '@/Components/sales/PaymentProof';
 
 const CART_KEY = 'soipos.pos.cart';
 const EVENT_KEY = 'soipos.pos.event';
@@ -61,7 +63,7 @@ function cashSuggestions(total) {
     return [...new Set(values.map(round2))].filter((v) => v >= total).slice(0, 5);
 }
 
-export default function Pos({ products = [], categories = [], availableStock = {}, paymentMethods = [], events = [] }) {
+export default function Pos({ products = [], categories = [], availableStock = {}, paymentMethods = [], events = [], duitnowQr = null }) {
     const searchRef = useRef(null);
     const [query, setQuery] = useState('');
     const [category, setCategory] = useState('all');
@@ -75,6 +77,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
     const [method, setMethod] = useState(paymentMethods[0] || 'Cash');
     const [tendered, setTendered] = useState('');
     const [reference, setReference] = useState('');
+    const [proof, setProof] = useState(null); // photo of the customer's transfer success screen
     const [errors, setErrors] = useState([]);
     const [notice, setNotice] = useState('');
     const [processing, setProcessing] = useState(false);
@@ -122,7 +125,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
         return products.filter((p) => {
             if (category !== 'all' && p.product_category_id !== category) return false;
             if (!q) return true;
-            return [p.product_name, p.product_sku_code, p.product_code]
+            return [productLabel(p), p.product_sku_code, p.product_code]
                 .some((v) => v && String(v).toLowerCase().includes(q));
         });
     }, [products, query, category]);
@@ -136,8 +139,8 @@ export default function Pos({ products = [], categories = [], availableStock = {
         const inCart = cart.filter((l) => l.product_id === product.id).reduce((s, l) => s + Number(l.quantity || 0), 0);
         if (inCart + qty > available) {
             const message = available <= 0
-                ? `${product.product_name} is out of stock.`
-                : `Only ${formatQty(available)} ${product.product_unit} of ${product.product_name} in stock.`;
+                ? `${productLabel(product)} is out of stock.`
+                : `Only ${formatUnits(available)} of ${productLabel(product)} left in stock.`;
             setNotice(message);
             return message;
         }
@@ -145,12 +148,12 @@ export default function Pos({ products = [], categories = [], availableStock = {
         setCart((current) => {
             const existing = current.find((l) => l.key === key);
             if (existing) {
-                return current.map((l) => (l.key === key ? { ...l, quantity: round2(l.quantity + qty) } : l));
+                return current.map((l) => (l.key === key ? { ...l, quantity: l.quantity + qty } : l));
             }
             return [...current, {
                 key,
                 product_id: product.id,
-                name: product.product_name,
+                name: productLabel(product),
                 unit: product.product_unit,
                 unit_price: Number(product.product_price || 0),
                 quantity: qty,
@@ -172,16 +175,16 @@ export default function Pos({ products = [], categories = [], availableStock = {
         const error = addToCart(product);
         if (error) return { ok: false, message: error };
         const inCart = cart.filter((l) => l.product_id === product.id).reduce((s, l) => s + Number(l.quantity || 0), 0) + 1;
-        return { ok: true, message: `${product.product_name} added (${formatQty(inCart)} in cart)` };
+        return { ok: true, message: `${productLabel(product)} added (${formatQty(inCart)} in cart)` };
     };
 
     const setQuantity = (key, quantity) => {
         const line = cart.find((l) => l.key === key);
         if (!line) return;
-        let q = Math.max(0, Number(quantity) || 0);
+        let q = wholeUnits(quantity);
         const available = stockOf(line.product_id);
         if (q > available) {
-            setNotice(`Only ${formatQty(available)} in stock.`);
+            setNotice(`Only ${formatUnits(available)} left in stock.`);
             q = available;
         }
         setCart((current) => current.map((l) => (l.key === key ? { ...l, quantity: q } : l)));
@@ -204,6 +207,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
         setMethod(paymentMethods[0] || 'Cash');
         setTendered('');
         setReference('');
+        setProof(null);
         setErrors([]);
         setCompleted(null);
         setTimeout(() => searchRef.current?.focus(), 50);
@@ -246,6 +250,8 @@ export default function Pos({ products = [], categories = [], availableStock = {
                 payment_reference: reference || null,
                 amount_tendered: isCash ? paid : null,
             });
+            const proofFile = !payLater && PROOF_METHODS.includes(method) ? proof : null;
+            if (proofFile) await attachProofToNewSale(data.sale, proofFile);
             setCompleted(data.sale);
             toast.success(`${data.sale.document_type === 'invoice' ? 'Invoice' : 'Sale'} ${data.sale.receipt_no} saved.`);
             setMobileCartOpen(false);
@@ -311,12 +317,15 @@ export default function Pos({ products = [], categories = [], availableStock = {
             total={total}
             itemCount={itemCount}
             paymentMethods={paymentMethods}
+            duitnowQr={duitnowQr}
             method={method}
             setMethod={setMethod}
             tendered={tendered}
             setTendered={setTendered}
             reference={reference}
             setReference={setReference}
+            proof={proof}
+            setProof={setProof}
             change={change}
             isCash={isCash}
             paid={paid}
@@ -333,7 +342,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
 
             <div className="mx-auto grid max-w-[1600px] lg:h-[calc(100vh-3.5rem)] lg:grid-cols-[minmax(0,1fr)_420px]">
                 {/* Products */}
-                <section className="flex min-h-0 flex-col gap-4 p-4 pb-24 lg:pb-4">
+                <section className="flex min-h-0 flex-col gap-4 px-4 pt-4 pb-safe-pos lg:pb-4">
                     <div className="flex flex-wrap gap-2">
                         <div className="relative min-w-48 flex-1">
                             <ScanBarcode className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -416,7 +425,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
             </div>
 
             {/* Cart (mobile) */}
-            <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background p-3 lg:hidden">
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background px-3 pt-3 pb-safe-bar lg:hidden">
                 <Button className="h-12 w-full justify-between text-base" onClick={() => setMobileCartOpen(true)}>
                     <span className="flex items-center gap-2">
                         <ShoppingCart />
@@ -426,7 +435,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
                 </Button>
             </div>
             <Dialog open={mobileCartOpen} onOpenChange={setMobileCartOpen}>
-                <DialogContent className="flex h-[100dvh] max-w-full flex-col gap-0 rounded-none p-0 sm:h-[90vh] sm:max-w-lg sm:rounded-lg">
+                <DialogContent className="flex h-[100dvh] max-w-full flex-col gap-0 rounded-none p-0 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] sm:h-[90vh] sm:max-w-lg sm:rounded-lg sm:p-0">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Cart</DialogTitle>
                         <DialogDescription>Current sale</DialogDescription>
@@ -447,6 +456,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
                     }
                 }}
                 paymentMethods={paymentMethods}
+                duitnowQr={duitnowQr}
                 initialOrderId={collectOrderId}
                 onCollected={(sale) => {
                     setCollectOpen(false);
@@ -526,9 +536,9 @@ function ProductTile({ product, stock, inCart, onAdd }) {
                 'hover:border-foreground/40 hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm',
             )}
         >
-            <div className="flex aspect-[4/3] items-center justify-center bg-muted">
+            <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-muted">
                 {product.product_img_address ? (
-                    <img src={product.product_img_address} alt="" className="h-full w-full object-cover" loading="lazy" />
+                    <img src={product.product_img_address} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
                 ) : (
                     <span className="text-2xl font-semibold text-muted-foreground">{initials}</span>
                 )}
@@ -537,7 +547,7 @@ function ProductTile({ product, stock, inCart, onAdd }) {
                 <Badge className="absolute right-2 top-2 tabular-nums">{formatQty(inCart)}</Badge>
             )}
             <div className="flex flex-1 flex-col gap-1 p-3">
-                <p className="line-clamp-2 text-sm font-medium leading-snug">{product.product_name}</p>
+                <p className="line-clamp-2 text-sm font-medium leading-snug">{productLabel(product)}</p>
                 <div className="mt-auto flex items-end justify-between gap-2 pt-1">
                     <p className="font-semibold tabular-nums">RM {formatMoney(product.product_price)}</p>
                     <p className={cn('text-xs tabular-nums', out ? 'font-medium text-destructive' : 'text-muted-foreground')}>
@@ -555,7 +565,7 @@ function CartPanel(props) {
         customer, setCustomer, activeEvent, showCustomer, setShowCustomer, docType, setDocType, payLater, setPayLater,
         discountValue, setDiscountValue, discountMode, setDiscountMode,
         subtotal, discount, total, itemCount,
-        paymentMethods, method, setMethod, tendered, setTendered, reference, setReference,
+        paymentMethods, duitnowQr, method, setMethod, tendered, setTendered, reference, setReference, proof, setProof,
         change, isCash, paid, errors, processing, canCharge, charge,
     } = props;
 
@@ -680,7 +690,8 @@ function CartPanel(props) {
                                         <input
                                             type="number"
                                             min="0"
-                                            step="any"
+                                            step="1"
+                                            inputMode="numeric"
                                             value={line.quantity}
                                             onChange={(e) => setQuantity(line.key, e.target.value)}
                                             className="h-8 w-12 border-0 bg-transparent p-0 text-center text-sm tabular-nums focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
@@ -830,6 +841,7 @@ function CartPanel(props) {
                     </div>
                 ) : (
                     <div className="space-y-2">
+                        {method === 'E-Wallet' && <DuitNowQr qr={duitnowQr} total={total} />}
                         <Label htmlFor="reference" className="text-xs text-muted-foreground">Reference (optional)</Label>
                         <Input
                             id="reference"
@@ -838,6 +850,7 @@ function CartPanel(props) {
                             placeholder="Approval code / transaction ID"
                             className="bg-background"
                         />
+                        {PROOF_METHODS.includes(method) && <PaymentProofInput file={proof} onChange={setProof} />}
                     </div>
                 )}
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AgentController;
@@ -8,47 +9,62 @@ use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentProofController;
 use App\Http\Controllers\SalesEventController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\PreorderSessionController;
 use App\Http\Controllers\PublicPreorderController;
 use App\Http\Controllers\PosPreorderController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminStoreController;
+use App\Http\Controllers\Admin\AdminUserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+Route::get('/', HomeController::class)->middleware(['auth', 'store'])->name('dashboard');
+
+// Public agent sign-up, one link per store
+Route::get('/agent/register', [AgentController::class, 'registerPicker'])->name('agent.register.picker');
+Route::get('/agent/register/{code}', [AgentController::class, 'registerIndex'])->name('agent.register');
+Route::post('/agent/register/{code}', [AgentController::class, 'saveAgentRegistration'])->middleware('throttle:public-form')->name('agent.register.save');
+Route::get('/agent/register/{code}/success', [AgentController::class, 'agentRegistrationSuccess'])->name('agent.register.success');
+
+// Master admin: stores and users
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [AdminAuthController::class, 'create'])->name('login');
+    });
+    Route::middleware(['auth', 'master'])->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'destroy'])->name('logout');
+        Route::get('/', [AdminStoreController::class, 'index'])->name('dashboard');
+        Route::post('/stores', [AdminStoreController::class, 'store'])->name('stores.store');
+        Route::put('/stores/{store}', [AdminStoreController::class, 'update'])->name('stores.update');
+        Route::post('/stores/{store}/enter', [AdminStoreController::class, 'enter'])->name('stores.enter');
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+        Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    });
 });
-
-Route::get('/', fn () => redirect()->route('sales.pos'))
-    ->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::get('/agent/register', [AgentController::class, 'registerIndex'])->name('agent.register');
-Route::post('/agent/register', [AgentController::class, 'saveAgentRegistration'])->name('agent.register.save');
-Route::get('/agent/register/success', [AgentController::class, 'agentRegistrationSuccess'])->name('agent.register.success');
 
 // Public pre-order form (no login)
 Route::get('/p/{token}', [PublicPreorderController::class, 'show'])->name('preorder.form');
-Route::post('/p/{token}', [PublicPreorderController::class, 'store'])->middleware('throttle:10,1')->name('preorder.submit');
+Route::post('/p/{token}', [PublicPreorderController::class, 'store'])->middleware('throttle:public-form')->name('preorder.submit');
 Route::get('/p/{token}/order/{order}', [PublicPreorderController::class, 'thanks'])->name('preorder.thanks');
 
-Route::middleware('auth')->group(function () {
+// Store pages: signed in AND working in a store the user is assigned to
+Route::middleware(['auth', 'store'])->group(function () {
 
     Route::get('/about', function () {return Inertia::render('About');})->name('about');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     //Settings
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/duitnow-qr', [SettingController::class, 'uploadDuitNowQr'])->name('settings.duitnow.store');
+    Route::delete('/settings/duitnow-qr', [SettingController::class, 'deleteDuitNowQr'])->name('settings.duitnow.destroy');
 
     //Sales / POS
     Route::get('/pos', [SaleController::class, 'pos'])->name('sales.pos');
@@ -85,6 +101,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/{sale}/invoice', [InvoiceController::class, 'pdf'])->name('sales.invoice');
     Route::post('/sales/{sale}/payments', [InvoiceController::class, 'addPayment'])->name('sales.payments.store');
     Route::delete('/sales/{sale}/payments/{payment}', [InvoiceController::class, 'deletePayment'])->name('sales.payments.destroy');
+    Route::post('/sales/{sale}/payments/{payment}/proof', [PaymentProofController::class, 'store'])->name('sales.payments.proof.store');
+    Route::get('/sales/{sale}/payments/{payment}/proof', [PaymentProofController::class, 'show'])->name('sales.payments.proof.show');
+    Route::delete('/sales/{sale}/payments/{payment}/proof', [PaymentProofController::class, 'destroy'])->name('sales.payments.proof.destroy');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::get('/sales/{sale}/receipt', [SaleController::class, 'receipt'])->name('sales.receipt');
     Route::post('/sales/{sale}/void', [SaleController::class, 'void'])->name('sales.void');

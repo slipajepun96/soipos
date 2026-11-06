@@ -36,9 +36,8 @@ class ProductCategoryController extends Controller
             $product_category = new ProductCategory($validatedData);
             $product_category->save();
             return Redirect::route('productCategories.index')->with('success', 'Product Category added successfully.');
-        } catch (\Exception $e) {
-            // Handle any unexpected errors
-            return redirect()->back()->withErrors(['error' => 'An error occurred while updating this product category. Please try again.']);
+        } catch (\Throwable $e) {
+            return $this->failed($e, 'save the product category');
         }
     }
 
@@ -75,39 +74,27 @@ class ProductCategoryController extends Controller
                 'message' => 'Product Category updated successfully',
                 'type' => 'success',
             ]);
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors([
-                'error' => 'An error occurred while updating this product category. Please try again.',
-            ]);
+        } catch (\Throwable $e) {
+            return $this->failed($e, 'update the product category');
         }
     }
 
     public function deleteProductCategory(Request $request): RedirectResponse
     {
         try {
-            DB::beginTransaction();
+            DB::transaction(function () use ($request) {
+                ProductCategory::where('product_categories_parent_uuid', $request->id)
+                    ->update(['product_categories_parent_uuid' => null]);
 
-            ProductCategory::where('product_categories_parent_uuid', $request->id)
-                ->update(['product_categories_parent_uuid' => null]);
-
-            ProductCategory::findOrFail($request->id)->delete();
-
-            DB::commit();
+                ProductCategory::findOrFail($request->id)->delete();
+            });
 
             return redirect()->back()->with([
                 'message' => 'Deleted Successfully',
                 'type' => 'success',
             ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Database error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return redirect()->back()
-                ->with('error', 'Failed to save transactions')
-                ->withErrors(['database' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            return $this->failed($e, 'delete the product category');
         }
     }
 }

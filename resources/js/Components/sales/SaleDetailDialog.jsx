@@ -27,6 +27,7 @@ import DatePicker from '@/Components/inventory/DatePicker';
 import { formatDate, formatMoney, formatQty, today } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { DocTypeBadge, PaymentStatusBadge } from './SaleBadges';
+import { PaymentProofCell } from './PaymentProof';
 
 const time = (iso) => (iso ? format(new Date(iso), 'HH:mm') : '');
 
@@ -116,10 +117,11 @@ export default function SaleDetailDialog({ sale, paymentMethods = [], onClose, o
                             {detail?.items.map((item) => (
                                 <TableRow key={item.id}>
                                     <TableCell className="pl-4">
-                                        <div className="font-medium">{item.product_name}</div>
+                                        <div className="font-medium">{item.option_label || [item.product_name, item.product_size].filter(Boolean).join(' ')}</div>
+                                        {item.option_label && item.product_id && <div className="text-xs text-muted-foreground">{[item.product_name, item.product_size].filter(Boolean).join(' ')}</div>}
                                         {item.product_sku_code && <div className="text-xs text-muted-foreground">SKU {item.product_sku_code}</div>}
                                     </TableCell>
-                                    <TableCell className="text-right tabular-nums">{formatQty(item.quantity)} {item.product_unit}</TableCell>
+                                    <TableCell className="text-right tabular-nums">{formatQty(item.quantity)}</TableCell>
                                     <TableCell className="text-right tabular-nums">{formatMoney(item.unit_price)}</TableCell>
                                     <TableCell className="pr-4 text-right tabular-nums">{formatMoney(item.line_total)}</TableCell>
                                 </TableRow>
@@ -166,6 +168,7 @@ export default function SaleDetailDialog({ sale, paymentMethods = [], onClose, o
                                             <TableCell>
                                                 <div>{p.method}</div>
                                                 {p.reference && <div className="text-xs text-muted-foreground">{p.reference}</div>}
+                                                <PaymentProofCell saleId={s.id} payment={p} canEdit={!voided} onChanged={load} />
                                             </TableCell>
                                             <TableCell className="text-muted-foreground">{p.received_by}</TableCell>
                                             <TableCell className="text-right tabular-nums">{formatMoney(p.amount)}</TableCell>

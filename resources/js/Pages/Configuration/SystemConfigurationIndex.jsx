@@ -1,11 +1,12 @@
 import { useForm } from '@inertiajs/react';
-import { Building2, Mail, MapPin, Phone, ReceiptText, Store } from 'lucide-react';
+import { Building2, Mail, MapPin, Phone, QrCode, ReceiptText, Store } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import InventoryPage from '@/Components/inventory/InventoryPage';
 import FormField from '@/Components/inventory/FormField';
+import DuitNowQrUpload from '@/Components/settings/DuitNowQrUpload';
 
 export default function SystemConfigurationIndex({ settings }) {
     const form = useForm({
@@ -86,6 +87,16 @@ export default function SystemConfigurationIndex({ settings }) {
                             <FormField label="Footer message" htmlFor="receipt_footer" error={errors.receipt_footer}>
                                 <Input {...field('receipt_footer')} placeholder="e.g. Thank you. Please come again." />
                             </FormField>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><QrCode className="h-4 w-4" />DuitNow QR</CardTitle>
+                            <CardDescription>Shown to customers at the POS for e-wallet payments.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <DuitNowQrUpload current={settings.duitnow_qr} />
                         </CardContent>
                     </Card>
 

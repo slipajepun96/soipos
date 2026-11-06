@@ -97,6 +97,9 @@ export default function ViewProductDetail({ product, suppliers, product_categori
                 <div className="items-center space-y-2">
                     <div className="grid flex-1 gap-2">
                         <div className='mt-3'>
+                            {product.product_img_address && (
+                                <img src={product.product_img_address} alt="" className="mb-3 h-40 w-40 rounded-md border object-cover" />
+                            )}
                             <span className="font-bold text-2xl">{data.product_name}</span>
                         </div>
                         <div className='grid grid-cols-2 gap-2'>
@@ -125,7 +128,7 @@ export default function ViewProductDetail({ product, suppliers, product_categori
                                     htmlFor="measurement"
                                     value={
                                     <>
-                                        Measurement
+                                        Size (one unit)
                                     </>
                                 }
                                 />
@@ -136,7 +139,7 @@ export default function ViewProductDetail({ product, suppliers, product_categori
                                     htmlFor="product_sku_code"
                                     value={
                                     <>
-                                        Low Stock Limit
+                                        Low Stock Limit (units)
                                     </>
                                 }
                                 />

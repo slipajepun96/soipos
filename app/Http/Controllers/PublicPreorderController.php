@@ -6,6 +6,8 @@ use App\Models\Preorder;
 use App\Models\PreorderSession;
 use App\Models\Setting;
 use App\Services\PreorderService;
+use App\Models\Store;
+use App\Support\CurrentStore;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -71,10 +73,10 @@ class PublicPreorderController extends Controller
         return redirect()->route('preorder.thanks', [$token, $order->id]);
     }
 
-    public function thanks(string $token, Preorder $order)
+    public function thanks(string $token, string $order)
     {
-        $session = $this->session($token);
-        abort_unless($order->preorder_session_id === $session->id, 404);
+        $session = $this->session($token);   // sets the store, so the order lookup below is scoped
+        $order = Preorder::where('preorder_session_id', $session->id)->findOrFail($order);
 
         return Inertia::render('Public/PreorderThanks', [
             'token' => $token,
@@ -86,11 +88,14 @@ class PublicPreorderController extends Controller
         ]);
     }
 
+    /** The link's session; also switches this request to that session's store. */
     private function session(string $token): PreorderSession
     {
-        return PreorderSession::with('items.product:id,product_img_address')
-            ->where('public_token', $token)
-            ->firstOrFail();
+        $session = PreorderSession::withoutGlobalScope('store')->where('public_token', $token)->firstOrFail();
+        abort_unless(Store::whereKey($session->store_id)->where('is_active', true)->exists(), 404);
+        CurrentStore::set($session->store_id);
+
+        return $session->load('items.product:id,product_img_address');
     }
 
     private function publicSession(PreorderSession $session): array

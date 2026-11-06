@@ -16,11 +16,31 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            \App\Http\Middleware\ResolveStore::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        //
+        // The store must be known before route model binding looks records up.
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            prepend: \App\Http\Middleware\ResolveStore::class,
+        );
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            prepend: \App\Http\Middleware\EnsureStoreSelected::class,
+        );
+
+        $middleware->alias([
+            'store' => \App\Http\Middleware\EnsureStoreSelected::class,
+            'master' => \App\Http\Middleware\EnsureMasterAdmin::class,
+        ]);
+
+        // Signed-in visitors of guest pages (login): admins go to the admin area, staff to the POS.
+        $middleware->redirectUsersTo(fn (\Illuminate\Http\Request $request) => $request->user()?->is_master_admin && ! $request->session()->has('store_id')
+            ? route('admin.dashboard')
+            : route('dashboard'));
+        $middleware->redirectGuestsTo(fn (\Illuminate\Http\Request $request) => $request->is('admin', 'admin/*') ? route('admin.login') : route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Inertia / axios requests get a JSON message with the specific reason,

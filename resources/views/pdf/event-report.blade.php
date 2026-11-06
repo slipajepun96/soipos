@@ -119,7 +119,7 @@
             @forelse ($products as $p)
                 <tr>
                     <td>{{ $p['product_name'] }}</td>
-                    <td class="right">{{ $qty($p['quantity']) }} {{ $p['product_unit'] }}</td>
+                    <td class="right">{{ $qty($p['quantity']) }}</td>
                     <td class="right">{{ $money($p['revenue']) }}</td>
                     <td class="right">{{ $money($p['cost']) }}</td>
                     <td class="right">{{ $money($p['profit']) }}</td>

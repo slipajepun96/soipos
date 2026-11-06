@@ -117,10 +117,11 @@
                 <tr>
                     <td class="muted">{{ $i + 1 }}</td>
                     <td>
-                        <div class="bold">{{ $item->product_name }}</div>
+                        <div class="bold">{{ $item->option_label ?: trim($item->product_name.' '.$item->product_size) }}</div>
+                        @if ($item->option_label && $item->product_id)<div class="muted">{{ trim($item->product_name.' '.$item->product_size) }}</div>@endif
                         @if ($item->product_sku_code)<div class="muted">SKU {{ $item->product_sku_code }}</div>@endif
                     </td>
-                    <td class="right">{{ $qty($item->quantity) }} {{ $item->product_unit }}</td>
+                    <td class="right">{{ $qty($item->quantity) }}</td>
                     <td class="right">{{ $money($item->unit_price) }}</td>
                     <td class="right">{{ $money($item->line_total) }}</td>
                 </tr>

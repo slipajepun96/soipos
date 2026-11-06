@@ -69,9 +69,8 @@ class SupplierController extends Controller
             $supplier->save();
 
             return redirect()->route('supplier.index')->with('success', 'Supplier updated');
-        } catch (\Exception $e) {
-            // Handle any unexpected errors
-            return redirect()->back()->withErrors(['error' => 'An error occurred while updating this supplier. Please try again.']);
+        } catch (\Throwable $e) {
+            return $this->failed($e, 'update the supplier');
         }
 
 
@@ -90,24 +89,14 @@ class SupplierController extends Controller
     public function deleteSupplier(Request $request): RedirectResponse
     {
         try {
-            DB::beginTransaction();
-            
             Supplier::findOrFail($request->id)->delete();
 
-            DB::commit();
             return redirect()->back()->with([
                 'message' => 'Deleted Successfully',
                 'type' => 'success'
             ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Database error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return redirect()->back()
-                ->with('error', 'Failed to save transactions')
-                ->withErrors(['database' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            return $this->failed($e, 'delete the supplier');
         }
 
     }

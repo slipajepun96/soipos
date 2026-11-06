@@ -47,13 +47,16 @@
 
     <table>
         @foreach ($sale->items as $item)
-            <tr><td colspan="2" class="item-name bold">{{ $item->option_label ?: $item->product_name }}</td></tr>
+            <tr><td colspan="2" class="item-name bold">{{ $item->option_label ?: trim($item->product_name.' '.$item->product_size) }}</td></tr>
+            @if ($item->option_label && $item->product_id)
+                <tr><td colspan="2" class="muted">{{ trim($item->product_name.' '.$item->product_size) }}</td></tr>
+            @endif
             <tr>
                 <td class="muted">
                     @if ($item->packs)
                         {{ $qty($item->packs) }} x {{ $money($item->unit_price) }}
                     @else
-                        {{ $qty($item->quantity) }} {{ $item->product_unit }} x {{ $money($item->unit_price) }}
+                        {{ $qty($item->quantity) }} x {{ $money($item->unit_price) }}
                     @endif
                 </td>
                 <td class="right">{{ $money($item->line_total) }}</td>

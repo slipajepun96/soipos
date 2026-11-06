@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -10,6 +11,7 @@ use Illuminate\Support\Str;
 
 class StockDoc extends Model
 {
+    use BelongsToStore;
     use HasFactory, Notifiable;
 
     protected $keyType = 'string'; // Set the key type to UUID
@@ -40,13 +42,14 @@ class StockDoc extends Model
         // Highest number used so far. Sales keep their number after a void deletes
         // the stock document, so they are checked too; numbers are never reused.
         $pattern = '^[A-Z]{3}[0-9]{2}[0-9]{7}$';
-        $fromDocs = (int) self::where(function ($query) use ($pattern) {
+        // Across all stores: these numbers are primary keys / unique.
+        $fromDocs = (int) self::withoutGlobalScope('store')->where(function ($query) use ($pattern) {
                 $query->where('stock_doc_num', 'REGEXP', $pattern)->orWhere('id', 'REGEXP', $pattern);
             })
             ->selectRaw('MAX(CAST(SUBSTRING(COALESCE(stock_doc_num, id), 6) AS UNSIGNED)) as n')
             ->value('n');
         $fromSales = \Illuminate\Support\Facades\Schema::hasTable('sales')
-            ? (int) \App\Models\Sale::where('receipt_no', 'REGEXP', $pattern)
+            ? (int) \App\Models\Sale::withoutGlobalScope('store')->where('receipt_no', 'REGEXP', $pattern)
                 ->selectRaw('MAX(CAST(SUBSTRING(receipt_no, 6) AS UNSIGNED)) as n')
                 ->value('n')
             : 0;

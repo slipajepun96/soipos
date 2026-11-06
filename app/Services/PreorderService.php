@@ -129,7 +129,7 @@ class PreorderService
                 'label' => $item->label,
                 'product_id' => $item->product_id,
                 'tracked' => $item->product_id !== null,
-                'product_name' => $item->product?->product_name,
+                'product_name' => $item->product?->displayName(),
                 'product_unit' => $item->product?->product_unit,
                 'unit_quantity' => $item->unit_quantity,
                 'price' => $item->price,

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\StoreRule;
 use App\Models\Preorder;
 use App\Models\Product;
 use App\Models\Sale;
@@ -29,7 +30,7 @@ class SaleService
         return [
             'document_type' => ['required', Rule::in(['receipt', 'invoice'])],
             'sales_event_id' => ['nullable', 'string',
-                Rule::exists('sales_events', 'id')->where(fn ($q) => $q->where('status', 'open'))],
+                StoreRule::exists('sales_events')->where(fn ($q) => $q->where('status', 'open'))],
             'sale_date' => ['nullable', 'date', 'before_or_equal:today'],
             'due_date' => ['nullable', 'date'],
             'customer_name' => ['nullable', 'string', 'max:255', 'required_if:document_type,invoice'],
@@ -40,8 +41,8 @@ class SaleService
             'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'string',
-                Rule::exists('products', 'id')->where(fn ($q) => $q->where('is_active', '1'))],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0'],
+                StoreRule::exists('products')->where(fn ($q) => $q->where('is_active', '1'))],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'pay_later' => ['boolean'],
@@ -168,6 +169,7 @@ class SaleService
                     'product_name' => $line['product']?->product_name ?? $line['option_label'],
                     'product_sku_code' => $line['product']?->product_sku_code,
                     'product_unit' => $line['product']?->product_unit,
+                    'product_size' => $line['product']?->sizeLabel(),
                     'quantity' => $line['quantity'],
                     'unit_price' => $line['unit_price'],
                     'line_total' => $line['line_total'],

@@ -8,8 +8,9 @@ import AddSupplier from './Partials/AddSupplier';
 import EditSupplier from './Partials/EditSupplier';
 import ViewSupplierDetail from './Partials/ViewSupplierDetail';
 import DeleteSupplier from './Partials/DeleteSupplier';
+import { PublicLink } from '@/Components/preorders/PreorderBits';
 
-export default function AgentIndex({ agents }) {
+export default function AgentIndex({ agents, registerUrl }) {
     const { flash } = usePage().props;
 
     const columns = [
@@ -76,13 +77,14 @@ export default function AgentIndex({ agents }) {
                 </h2>
             }
         >
-            <Head title="Inventory & Products" />
+            <Head title="Agents" />
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">
 
-                    <div className='px-4'>
-                        {/* <AddSupplier /> */}
+                    <div className='px-4 pb-4'>
+                        <p className="mb-1 text-sm text-muted-foreground">Agent registration link for this store</p>
+                        <PublicLink url={registerUrl} />
                     </div>
                     <DataTable columns={columns} data={agents} />
                 </div>

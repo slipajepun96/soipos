@@ -3,7 +3,7 @@ import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { cn } from '@/lib/utils';
-import { formatQty } from '@/lib/format';
+import { formatQty, formatUnits, productLabel } from '@/lib/format';
 
 /**
  * Searchable product picker. `available` (optional) is a map of product id to
@@ -18,7 +18,7 @@ export default function ProductCombobox({ id, products, value, onChange, availab
         const q = query.trim().toLowerCase();
         if (!q) return products;
         return products.filter((p) =>
-            `${p.product_name} ${p.product_sku_code ?? ''}`.toLowerCase().includes(q),
+            `${productLabel(p)} ${p.product_sku_code ?? ''}`.toLowerCase().includes(q),
         );
     }, [products, query]);
 
@@ -33,7 +33,7 @@ export default function ProductCombobox({ id, products, value, onChange, availab
                     aria-expanded={open}
                     className={cn('w-full justify-between font-normal', !selected && 'text-muted-foreground')}
                 >
-                    <span className="truncate">{selected ? selected.product_name : placeholder}</span>
+                    <span className="truncate">{selected ? productLabel(selected) : placeholder}</span>
                     <ChevronsUpDown className="opacity-50" />
                 </Button>
             </PopoverTrigger>
@@ -65,14 +65,14 @@ export default function ProductCombobox({ id, products, value, onChange, availab
                             >
                                 <Check className={cn('h-4 w-4 shrink-0', isSelected ? 'opacity-100' : 'opacity-0')} />
                                 <span className="min-w-0 flex-1">
-                                    <span className="block truncate">{product.product_name}</span>
+                                    <span className="block truncate">{productLabel(product)}</span>
                                     {product.product_sku_code && (
                                         <span className="block truncate text-xs text-muted-foreground">SKU {product.product_sku_code}</span>
                                     )}
                                 </span>
                                 {available && (
                                     <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                                        {formatQty(available[product.id] || 0)} {product.product_unit}
+                                        {formatUnits(available[product.id] || 0)}
                                     </span>
                                 )}
                             </button>

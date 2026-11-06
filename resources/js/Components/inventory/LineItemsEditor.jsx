@@ -10,7 +10,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
-import { formatMoney, formatQty } from '@/lib/format';
+import { formatMoney, formatQty, formatUnits } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import ProductCombobox from './ProductCombobox';
 import DatePicker from './DatePicker';
@@ -107,7 +107,7 @@ export default function LineItemsEditor({
 
                                     {(mode === 'out' || mode === 'count') && (
                                         <TableCell className="pt-4 text-right tabular-nums text-muted-foreground">
-                                            {line.product_id ? `${formatQty(onHand)} ${product?.product_unit ?? ''}` : '—'}
+                                            {line.product_id ? formatQty(onHand) : '—'}
                                         </TableCell>
                                     )}
 
@@ -115,7 +115,7 @@ export default function LineItemsEditor({
                                         <>
                                             <TableCell>
                                                 <Input
-                                                    type="number" min="0" step="any" inputMode="decimal"
+                                                    type="number" min="0" step="1" inputMode="numeric"
                                                     value={line.counted_quantity}
                                                     onChange={(e) => update(line.key, { counted_quantity: e.target.value })}
                                                     placeholder="0"
@@ -131,14 +131,14 @@ export default function LineItemsEditor({
                                     ) : (
                                         <TableCell>
                                             <Input
-                                                type="number" min="0" step="any" inputMode="decimal"
+                                                type="number" min="1" step="1" inputMode="numeric"
                                                 value={line.quantity}
                                                 onChange={(e) => update(line.key, { quantity: e.target.value })}
                                                 placeholder="0"
                                                 aria-invalid={overdrawn || undefined}
                                                 className={cn(overdrawn && 'border-destructive focus-visible:ring-destructive')}
                                             />
-                                            {overdrawn && <FieldError message={`Only ${formatQty(onHand)} on hand`} />}
+                                            {overdrawn && <FieldError message={`Only ${formatUnits(onHand)} on hand`} />}
                                             <FieldError message={err(line.key, 'quantity')} />
                                         </TableCell>
                                     )}

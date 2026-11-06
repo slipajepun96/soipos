@@ -20,7 +20,7 @@ import {
 } from "@/Components/ui/select"
 import { useForm } from '@inertiajs/react';
 
-export default function AgentRegistrationSuccess({ }) {
+export default function AgentRegistrationSuccess({ store }) {
     const { flash } = usePage().props;
 
 
@@ -28,11 +28,11 @@ export default function AgentRegistrationSuccess({ }) {
         <AgentLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Agent
+                    Agent registration · {store.name}
                 </h2>
             }
         >
-            <Head title="Inventory & Products" />
+            <Head title={`Registration sent · ${store.name}`} />
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">

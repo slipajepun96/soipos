@@ -77,7 +77,7 @@
                 <th>Item</th>
                 <th class="right">Orders</th>
                 <th class="right">Units</th>
-                <th class="right">Stock needed</th>
+                <th class="right">Stock units</th>
                 <th class="right">Value (RM)</th>
             </tr>
         </thead>
@@ -88,7 +88,7 @@
                     <td><span class="bold">{{ $item['label'] }}</span> <span class="muted">· {{ $item['tracked'] ? $item['product_name'] : 'Custom item' }}</span></td>
                     <td class="right">{{ $item['orders'] }}</td>
                     <td class="right big">{{ $item['pending_units'] }}</td>
-                    <td class="right">{!! $item['tracked'] ? e($qty($item['stock_needed']) . ' ' . $item['product_unit']) : '<span class="muted">Not tracked</span>' !!}</td>
+                    <td class="right">{!! $item['tracked'] ? e($qty($item['stock_needed']) . ' units') : '<span class="muted">Not tracked</span>' !!}</td>
                     <td class="right">{{ $money($item['pending_units'] * $item['price']) }}</td>
                 </tr>
             @empty
@@ -104,7 +104,7 @@
             <thead>
                 <tr>
                     <th>Product</th>
-                    <th class="right">Needed</th>
+                    <th class="right">Units needed</th>
                     <th class="right">In stock</th>
                     <th class="right">Short</th>
                 </tr>
@@ -113,9 +113,9 @@
                 @foreach ($products as $row)
                     <tr>
                         <td class="bold">{{ $row['product_name'] }}</td>
-                        <td class="right">{{ $qty($row['needed']) }} {{ $row['product_unit'] }}</td>
-                        <td class="right">{{ $qty($row['on_hand']) }} {{ $row['product_unit'] }}</td>
-                        <td class="right {{ $row['short'] > 0 ? 'short' : 'muted' }}">{{ $row['short'] > 0 ? $qty($row['short']) . ' ' . $row['product_unit'] : '—' }}</td>
+                        <td class="right">{{ $qty($row['needed']) }}</td>
+                        <td class="right">{{ $qty($row['on_hand']) }}</td>
+                        <td class="right {{ $row['short'] > 0 ? 'short' : 'muted' }}">{{ $row['short'] > 0 ? $qty($row['short']) : '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>

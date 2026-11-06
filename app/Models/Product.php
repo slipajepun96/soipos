@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
@@ -9,6 +10,7 @@ use Illuminate\Support\Str;
 
 class Product extends Model
 {
+    use BelongsToStore;
     use HasFactory, Notifiable;
 
     protected $keyType = 'string'; // Set the key type to UUID
@@ -18,7 +20,7 @@ class Product extends Model
     {
         static::creating(function($model)
         {
-            $model->id = Str::uuid();
+            $model->id = (string) Str::uuid();
             $model->is_active = '1';
         });
     }
@@ -45,5 +47,19 @@ class Product extends Model
     public function productSupplier()
     {
         return $this->belongsTo(\App\Models\Supplier::class, 'product_supplier_id', 'id');
+    }
+
+    /** Size of one unit, e.g. "500 Milliliter" (descriptive only; stock is counted in units). */
+    public function sizeLabel(): ?string
+    {
+        $size = trim(implode(' ', array_filter([$this->product_num_of_measure, $this->product_unit], fn ($v) => $v !== null && $v !== '')));
+
+        return $size === '' ? null : $size;
+    }
+
+    /** Name followed by size, e.g. "Spritzer Mineral Water 500 Milliliter". */
+    public function displayName(): string
+    {
+        return trim($this->product_name.' '.$this->sizeLabel());
     }
 }

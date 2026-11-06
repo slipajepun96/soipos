@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    // Sign in with Google (console.cloud.google.com > APIs & Services > Credentials > OAuth client ID, type "Web application").
+    // Authorised redirect URI: <APP_URL>/auth/google/callback
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+    ],
+
 ];

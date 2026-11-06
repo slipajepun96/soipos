@@ -115,7 +115,7 @@ export default function EventReport({ event, summary, by_method = [], by_day = [
                         {products.map((p) => (
                             <TableRow key={p.product_id ?? `custom-${p.product_name}`}>
                                 <TableCell className="pl-6 font-medium">{p.product_name}</TableCell>
-                                <TableCell className="text-right tabular-nums">{formatQty(p.quantity)} {p.product_unit}</TableCell>
+                                <TableCell className="text-right tabular-nums">{formatQty(p.quantity)}</TableCell>
                                 <TableCell className="text-right tabular-nums">{formatMoney(p.revenue)}</TableCell>
                                 <TableCell className="hidden text-right tabular-nums text-muted-foreground sm:table-cell">
                                     {revenueTotal > 0 ? `${((p.revenue / revenueTotal) * 100).toFixed(1)}%` : '—'}

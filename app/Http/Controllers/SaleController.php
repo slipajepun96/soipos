@@ -39,6 +39,7 @@ class SaleController extends Controller
                 ->get(['id', 'product_categories_name']),
             'availableStock' => $this->ledger->availableMap(),
             'paymentMethods' => Sale::PAYMENT_METHODS,
+            'duitnowQr' => Setting::store()['duitnow_qr'],
             'events' => SalesEvent::where('status', 'open')->orderBy('start_date')->get(['id', 'name', 'location', 'start_date', 'end_date']),
         ]);
     }

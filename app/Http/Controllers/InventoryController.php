@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\StoreRule;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Stock;
@@ -109,13 +110,13 @@ class InventoryController extends Controller
         $isGrn = $type === 'GRN';
 
         $validated = $request->validate([
-            'supplier_id' => [$isGrn ? 'required' : 'nullable', 'string', Rule::exists('suppliers', 'id')],
+            'supplier_id' => [$isGrn ? 'required' : 'nullable', 'string', StoreRule::exists('suppliers')],
             'document_date' => ['required', 'date'],
             'transportation_mode' => ['nullable', 'string', 'max:255'],
             'remarks' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'string', Rule::exists('products', 'id')],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'items.*.product_id' => ['required', 'string', StoreRule::exists('products')],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_cost' => ['required', 'numeric', 'min:0'],
             'items.*.expiry_date' => ['nullable', 'date'],
         ], [], [
@@ -202,7 +203,7 @@ class InventoryController extends Controller
             'remarks' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'string', $this->activeProductRule()],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.sales_unit_price' => ['nullable', 'numeric', 'min:0', Rule::requiredIf($isInvoice)],
         ], [], ['recipient_name' => 'customer']);
 
@@ -274,7 +275,7 @@ class InventoryController extends Controller
             'remarks' => ['required', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'string', 'distinct', $this->activeProductRule()],
-            'items.*.counted_quantity' => ['required', 'numeric', 'min:0'],
+            'items.*.counted_quantity' => ['required', 'integer', 'min:0'],
         ], [], ['remarks' => 'reason']);
 
         $docNum = DB::transaction(function () use ($validated) {
@@ -329,7 +330,7 @@ class InventoryController extends Controller
             'remarks' => ['required', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'string', $this->activeProductRule()],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
         ], [], ['remarks' => 'disposal reason']);
 
         $docNum = DB::transaction(function () use ($validated) {
@@ -491,7 +492,7 @@ class InventoryController extends Controller
 
     private function activeProductRule()
     {
-        return Rule::exists('products', 'id')->where(fn ($query) => $query->where('is_active', '1'));
+        return StoreRule::exists('products')->where(fn ($query) => $query->where('is_active', '1'));
     }
 
     private function balanceRows(): Collection

@@ -9,13 +9,13 @@ export function PublicShell({ title, shop, children, footer }) {
     return (
         <div className="min-h-[100dvh] bg-muted/40">
             <Head title={title} />
-            <header className="border-b bg-background">
+            <header className="pt-safe border-b bg-background">
                 <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
                     <span className="font-semibold tracking-tight">{shop?.name || 'Pre-order'}</span>
                     {shop?.phone && <a href={`tel:${shop.phone}`} className="text-sm text-muted-foreground hover:underline">{shop.phone}</a>}
                 </div>
             </header>
-            <main className="mx-auto max-w-xl space-y-4 px-4 py-5">{children}</main>
+            <main className="mx-auto max-w-xl space-y-4 px-4 pt-5 pb-safe">{children}</main>
             {footer}
         </div>
     );

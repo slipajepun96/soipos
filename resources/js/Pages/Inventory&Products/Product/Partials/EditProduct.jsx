@@ -19,6 +19,7 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 import { useForm } from '@inertiajs/react';
+import ProductImageInput from '@/Components/inventory/ProductImageInput';
 
 export default function EditProduct({ product, product_categories }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -27,7 +28,8 @@ export default function EditProduct({ product, product_categories }) {
         product_name: product.product_name || '',
         product_unit: product.product_unit || '',
         product_sku_code: product.product_sku_code || '',
-        product_img_address: product.product_img_address || '',
+        product_image: null,
+        remove_image: false,
         product_code: product.product_code || '',
         product_description: product.product_description || '',
         product_price: product.product_price || '',
@@ -45,7 +47,8 @@ export default function EditProduct({ product, product_categories }) {
             product_name: product.product_name || '',
             product_unit: product.product_unit || '',
             product_sku_code: product.product_sku_code || '',
-            product_img_address: product.product_img_address || '',
+            product_image: null,
+        remove_image: false,
             product_code: product.product_code || '',
             product_description: product.product_description || '',
             product_price: product.product_price || '',
@@ -79,7 +82,7 @@ export default function EditProduct({ product, product_categories }) {
             <DialogTrigger asChild>
                 <PrimaryButton variant="outline">Edit</PrimaryButton>
             </DialogTrigger>
-            <DialogContent className="max-w-xl">
+            <DialogContent className="max-h-[92dvh] max-w-xl overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Product</DialogTitle>
                     <DialogDescription>
@@ -94,6 +97,16 @@ export default function EditProduct({ product, product_categories }) {
                 </DialogHeader>
                 <form onSubmit={submit}>
                     <div className="items-center space-y-2">
+                        <div>
+                            <InputLabel htmlFor="product_image" value="Photo" />
+                            <div className="mt-1">
+                                <ProductImageInput
+                                    currentUrl={product.product_img_address}
+                                    error={errors.product_image}
+                                    onChange={({ file, remove }) => setData((d) => ({ ...d, product_image: file, remove_image: remove }))}
+                                />
+                            </div>
+                        </div>
                         <div className="grid flex-1 gap-2">
                             <div>
                                 <InputLabel
@@ -115,13 +128,14 @@ export default function EditProduct({ product, product_categories }) {
                                 <InputError message={errors.product_name} className="mt-2" />
                             </div>
                         </div>
+                        <p className="text-xs text-muted-foreground">Size only describes one unit (e.g. 500 Milliliter bottle). Stock, sales and orders are always counted in units.</p>
                         <div className="grid flex-1 gap-2 md:grid-cols-3">
                             <div>
                                 <InputLabel
                                     htmlFor="product_num_of_measure"
                                     value={
                                         <>
-                                            Number of Measure<span className="text-destructive">*</span>
+                                            Size<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
@@ -140,13 +154,13 @@ export default function EditProduct({ product, product_categories }) {
                                     htmlFor="product_unit"
                                     value={
                                         <>
-                                            Unit Of Measure<span className="text-destructive">*</span>
+                                            Size Unit<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />
                                 <Select value={data.product_unit} onValueChange={(value) => setData('product_unit', value)}>
                                     <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select UOM" />
+                                        <SelectValue placeholder="Select size unit" />
                                     </SelectTrigger>
                                     <SelectContent id="product_unit" name="product_unit">
                                         <SelectItem value="KG">KG</SelectItem>
@@ -235,7 +249,7 @@ export default function EditProduct({ product, product_categories }) {
                                     htmlFor="product_low_stock_limit"
                                     value={
                                         <>
-                                            Low Stock Limit<span className="text-destructive">*</span>
+                                            Low Stock Limit (units)<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />

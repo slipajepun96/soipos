@@ -12,7 +12,7 @@ export default function AgentLayout({ header, children }) {
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-safe pb-safe">
 {/* 
             {header && (
                 <header className="bg-white shadow">

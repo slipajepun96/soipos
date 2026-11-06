@@ -10,6 +10,8 @@ import { Label } from '@/Components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { formatDate, formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { PaymentProofInput, PROOF_METHODS, attachProofToNewSale } from '@/Components/sales/PaymentProof';
+import DuitNowQr from '@/Components/sales/DuitNowQr';
 
 const METHOD_ICONS = { Cash: Banknote, Card: CreditCard, 'E-Wallet': Smartphone, 'Bank Transfer': Landmark };
 const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
@@ -24,7 +26,7 @@ function cashSuggestions(total) {
  * Find a pending pre-order, take payment and hand it over.
  * `initialOrderId` opens straight on one order (from the session page's "Collect at POS").
  */
-export default function CollectPreorderDialog({ open, onOpenChange, paymentMethods, initialOrderId, onCollected }) {
+export default function CollectPreorderDialog({ open, onOpenChange, paymentMethods, duitnowQr = null, initialOrderId, onCollected }) {
     const [order, setOrder] = useState(null);
 
     useEffect(() => {
@@ -40,7 +42,7 @@ export default function CollectPreorderDialog({ open, onOpenChange, paymentMetho
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="flex max-h-[92dvh] flex-col gap-4 sm:max-w-lg">
                 {order
-                    ? <CollectStep order={order} paymentMethods={paymentMethods} onBack={() => setOrder(null)} onCollected={onCollected} />
+                    ? <CollectStep order={order} paymentMethods={paymentMethods} duitnowQr={duitnowQr} onBack={() => setOrder(null)} onCollected={onCollected} />
                     : <SearchStep onPick={setOrder} />}
             </DialogContent>
         </Dialog>
@@ -104,10 +106,11 @@ function SearchStep({ onPick }) {
     );
 }
 
-function CollectStep({ order, paymentMethods, onBack, onCollected }) {
+function CollectStep({ order, paymentMethods, duitnowQr, onBack, onCollected }) {
     const [method, setMethod] = useState(paymentMethods[0] || 'Cash');
     const [tendered, setTendered] = useState('');
     const [reference, setReference] = useState('');
+    const [proof, setProof] = useState(null);
     const [errors, setErrors] = useState([]);
     const [processing, setProcessing] = useState(false);
     const buttonRef = useRef(null);
@@ -129,6 +132,7 @@ function CollectStep({ order, paymentMethods, onBack, onCollected }) {
                 amount_tendered: isCash ? paid : null,
                 payment_reference: reference || null,
             });
+            if (PROOF_METHODS.includes(method) && proof) await attachProofToNewSale(data.sale, proof);
             onCollected(data.sale);
         } catch (error) {
             const bag = error.response?.data?.errors;
@@ -217,8 +221,10 @@ function CollectStep({ order, paymentMethods, onBack, onCollected }) {
                             </div>
                         ) : (
                             <div className="space-y-2">
+                                {method === 'E-Wallet' && <DuitNowQr qr={duitnowQr} total={total} />}
                                 <Label htmlFor="collect-ref">Reference</Label>
                                 <Input id="collect-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Optional, e.g. last 4 digits / transaction ID" />
+                                {PROOF_METHODS.includes(method) && <PaymentProofInput file={proof} onChange={setProof} />}
                             </div>
                         )}
                     </div>

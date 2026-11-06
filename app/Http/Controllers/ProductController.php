@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\Product;
+
+use App\Support\StoreRule;use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
 // use App\Models\Entity;
@@ -13,9 +14,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    /** Product photo: shown on the POS and the public pre-order form. */
+    private const IMAGE_RULES = ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'];
+
     public function index()
     {
         $products = Product::all();
@@ -34,26 +39,27 @@ class ProductController extends Controller
         try {
 
             $validatedData = $request->validate([
-                'product_category_id' => 'required|string|max:255',
+                'product_category_id' => ['required', 'string', StoreRule::exists('product_categories')],
                 'product_name' => 'required|string|max:255',
                 'product_unit' => 'required|string|max:50',
                 'product_sku_code' => 'nullable|string|max:100',
-                'product_img_address' => 'nullable|string|max:255',
                 'product_code' => 'nullable|string|max:100',
                 'product_description' => 'nullable|string|max:1000',
+                'product_image' => self::IMAGE_RULES,
+                'remove_image' => 'nullable|boolean',
                 'product_price' => 'required|numeric',
                 'product_num_of_measure' => 'required|numeric',
-                'product_low_stock_limit' => 'required|numeric',
+                'product_low_stock_limit' => 'required|integer|min:0',
             ]);
             // dd($validatedData);
 
-            $product = new Product($validatedData);
+            $product = new Product(collect($validatedData)->except(['product_image', 'remove_image'])->all());
+            $product->product_img_address = $this->storeImage($request);
             $product->save();
             return Redirect::route('product.index')->with('success', 'Product added successfully.');
         }
-        catch (\Exception $e) {
-            // Handle any unexpected errors
-            return redirect()->back()->withErrors(['error' => 'An error occurred while saving this product. Please try again.']);
+        catch (\Throwable $e) {
+            return $this->failed($e, 'save the product');
         }
 
     }
@@ -64,30 +70,34 @@ class ProductController extends Controller
             $product = Product::findOrFail($request->id);
 
             $validatedData = $request->validate([
-                'product_category_id' => 'required|string|max:255',
+                'product_category_id' => ['required', 'string', StoreRule::exists('product_categories')],
                 'product_name' => 'required|string|max:255',
                 'product_unit' => 'required|string|max:50',
                 'product_sku_code' => 'nullable|string|max:100',
-                'product_img_address' => 'nullable|string|max:255',
                 'product_code' => 'nullable|string|max:100',
                 'product_description' => 'nullable|string|max:1000',
+                'product_image' => self::IMAGE_RULES,
+                'remove_image' => 'nullable|boolean',
                 'product_price' => 'required|numeric',
                 'product_num_of_measure' => 'required|numeric',
                 'product_supplier_id' => 'nullable|string|max:255',
-                'product_low_stock_limit' => 'required|numeric',
+                'product_low_stock_limit' => 'required|integer|min:0',
             ]);
 
-            $product->update($validatedData);
+            $fields = collect($validatedData)->except(['product_image', 'remove_image'])->all();
+            if ($request->hasFile('product_image') || $request->boolean('remove_image')) {
+                $this->deleteImage($product->product_img_address);
+                $fields['product_img_address'] = $this->storeImage($request);
+            }
+            $product->update($fields);
 
             return redirect()->back()->with([
                 'message' => 'Product updated successfully',
                 'type' => 'success',
             ]);
         }
-        catch (\Exception $e) {
-            return redirect()->back()->withErrors([
-                'error' => 'An error occurred while updating this product. Please try again.',
-            ]);
+        catch (\Throwable $e) {
+            return $this->failed($e, 'update the product');
         }
     }
 
@@ -104,25 +114,37 @@ class ProductController extends Controller
     public function deleteProduct(Request $request): RedirectResponse
     {
         try {
-            DB::beginTransaction();
-            
-            Product::findOrFail($request->id)->delete();
+            $product = Product::findOrFail($request->id);
+            $image = $product->product_img_address;
+            $product->delete();
 
-            DB::commit();
+            $this->deleteImage($image);
             return redirect()->back()->with([
                 'message' => 'Deleted Successfully',
                 'type' => 'success'
             ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Database error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return redirect()->back()
-                ->with('error', 'Failed to save transactions')
-                ->withErrors(['database' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            return $this->failed($e, 'delete the product');
         }
 
+    }
+
+    /** Saves the uploaded photo on the public disk and returns its URL path, or null. */
+    private function storeImage(Request $request): ?string
+    {
+        if (! $request->hasFile('product_image')) {
+            return null;
+        }
+        $path = $request->file('product_image')->store('products', 'public');
+
+        return '/storage/'.$path;
+    }
+
+    /** Removes a photo this app stored (links to other sites are left alone). */
+    private function deleteImage(?string $url): void
+    {
+        if ($url && str_starts_with($url, '/storage/products/')) {
+            Storage::disk('public')->delete(substr($url, strlen('/storage/')));
+        }
     }
 }

@@ -34,6 +34,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // The store this session works in (null on public and admin pages).
+            'store' => fn () => ($id = \App\Support\CurrentStore::id())
+                ? \App\Models\Store::whereKey($id)->first(['id', 'name', 'code'])
+                : null,
             // Controllers flash either message+type, or success / error.
             'flash' => fn () => [
                 'message' => $request->session()->get('message')

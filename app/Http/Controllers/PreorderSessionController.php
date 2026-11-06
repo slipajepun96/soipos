@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\StoreRule;
 use App\Models\Preorder;
 use App\Models\PreorderSession;
 use App\Models\Product;
@@ -91,7 +92,7 @@ class PreorderSessionController extends Controller
     /** Orders and packing summary for one session. */
     public function show(PreorderSession $session)
     {
-        $session->load('items.product:id,product_name,product_unit', 'event:id,name,status');
+        $session->load('items.product:id,product_name,product_unit,product_num_of_measure', 'event:id,name,status');
 
         $orders = $session->orders()
             ->with('lines', 'sale:id,receipt_no')
@@ -214,7 +215,7 @@ class PreorderSessionController extends Controller
             'session' => $session?->load('items')->toArray(),
             'orderedUnits' => $session ? $this->preorders->orderedUnits($session) : (object) [],
             'products' => Product::where('is_active', '1')->orderBy('product_name')
-                ->get(['id', 'product_name', 'product_sku_code', 'product_unit', 'product_price']),
+                ->get(['id', 'product_name', 'product_sku_code', 'product_unit', 'product_num_of_measure', 'product_price']),
             'events' => SalesEvent::where('status', 'open')->orderBy('start_date')->get(['id', 'name']),
         ];
     }
@@ -223,7 +224,7 @@ class PreorderSessionController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'sales_event_id' => ['nullable', 'string', Rule::exists('sales_events', 'id')],
+            'sales_event_id' => ['nullable', 'string', StoreRule::exists('sales_events')],
             'pickup_location' => ['required', 'string', 'max:255'],
             'pickup_date' => ['required', 'date'],
             'pickup_time' => ['nullable', 'string', 'max:100'],
@@ -232,9 +233,9 @@ class PreorderSessionController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['nullable', 'string'],
             // Empty product = an item not in the product list: sold and reported, no stock moved.
-            'items.*.product_id' => ['nullable', 'string', Rule::exists('products', 'id')],
+            'items.*.product_id' => ['nullable', 'string', StoreRule::exists('products')],
             'items.*.label' => ['required', 'string', 'max:255'],
-            'items.*.unit_quantity' => ['required', 'numeric', 'gt:0'],
+            'items.*.unit_quantity' => ['required', 'integer', 'min:1'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.max_per_order' => ['nullable', 'integer', 'min:1'],
             'items.*.quota' => ['nullable', 'integer', 'min:0'],
@@ -243,7 +244,7 @@ class PreorderSessionController extends Controller
         ], [
             'items.*.product_id' => 'product',
             'items.*.label' => 'item name',
-            'items.*.unit_quantity' => 'quantity per unit',
+            'items.*.unit_quantity' => 'units per item',
             'items.*.max_per_order' => 'max per order',
         ]);
     }
@@ -271,7 +272,7 @@ class PreorderSessionController extends Controller
             $fields = [
                 'product_id' => ($item['product_id'] ?? null) ?: null,
                 'label' => trim($item['label']),
-                'unit_quantity' => ($item['product_id'] ?? null) ? $item['unit_quantity'] : 1,
+                'unit_quantity' => ($item['product_id'] ?? null) ? (int) $item['unit_quantity'] : 1,
                 'price' => round((float) $item['price'], 2),
                 'max_per_order' => $item['max_per_order'] ?? null,
                 'quota' => $item['quota'] ?? null,

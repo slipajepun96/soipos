@@ -93,7 +93,7 @@ export default function DeleteProduct({ product }) {
                                     </>
                                 }
                             /> */}
-                            {data.product_name} -  {product.product_num_of_measure} {product.product_unit}
+                            {data.product_name} {product.product_num_of_measure} {product.product_unit}
                         </div>
                         <div className='text-base p-3 border bg-muted text-foreground rounded-sm'>Delete the product only if there is no other data associated with it. Otherwise, select Deactivate.</div>
                     </div>

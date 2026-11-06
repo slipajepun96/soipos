@@ -103,9 +103,16 @@ export default function ProductIndex({ products , product_categories , suppliers
             Header: 'Product Name',
             accessor: ['product_name'],
             Cell: ({ row }) => (
-                <div className="flex flex-col ">
-                    <div className='font-bold'>{row.product_name}</div>
-                    <div>{row.product_num_of_measure} {row.product_unit}</div>
+                <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted text-xs font-semibold text-muted-foreground">
+                        {row.product_img_address
+                            ? <img src={row.product_img_address} alt="" className="h-full w-full object-cover" loading="lazy" />
+                            : row.product_name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col">
+                        <div className='font-bold'>{row.product_name}</div>
+                        <div>{row.product_num_of_measure} {row.product_unit}</div>
+                    </div>
                 </div>
             ),
         },

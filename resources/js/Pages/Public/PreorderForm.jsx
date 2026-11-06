@@ -41,7 +41,7 @@ export default function PreorderForm({ token, shop, session, accepting, items = 
             shop={shop}
             footer={accepting && (
                 <div className="sticky bottom-0 border-t bg-background/95 backdrop-blur">
-                    <div className="mx-auto flex max-w-xl items-center justify-between gap-3 px-4 py-3">
+                    <div className="mx-auto flex max-w-xl items-center justify-between gap-3 px-4 pt-3 pb-safe-bar">
                         <div>
                             <p className="text-xs text-muted-foreground">{unitCount} item{unitCount === 1 ? '' : 's'} · pay at pickup</p>
                             <p className="text-lg font-semibold tabular-nums">RM {formatMoney(total)}</p>
