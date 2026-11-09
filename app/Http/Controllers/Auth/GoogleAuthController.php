@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Models\User;
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,7 +63,11 @@ class GoogleAuthController extends Controller
         }
 
         try {
-            $google = Socialite::driver('google')->user();
+            // Verify Google's SSL certificate with the CA bundle shipped in the project, so the
+            // token exchange works even when the server's php.ini has no curl.cainfo (e.g. PHP on Windows).
+            $google = Socialite::driver('google')
+                ->setHttpClient(new Client(['verify' => resource_path('certs/cacert.pem'), 'timeout' => 15]))
+                ->user();
         } catch (Throwable $e) {
             report($e);
 
