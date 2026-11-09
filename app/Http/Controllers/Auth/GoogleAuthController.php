@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Models\User;
+use GuzzleHttp\Exception\BadResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Throwable;
 
 /**
@@ -63,7 +66,7 @@ class GoogleAuthController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return $this->fail($intent, 'google', 'Google sign-in failed or expired. Please try again.');
+            return $this->fail($intent, 'google', 'Google sign-in failed: '.$this->describe($e));
         }
 
         $email = strtolower((string) $google->getEmail());
@@ -108,6 +111,33 @@ class GoogleAuthController extends Controller
         $request->session()->put('store_id', $login['store_id']);
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    /** The exact reason the Google exchange failed, e.g. "[ConnectException] cURL error 60: ..." */
+    private function describe(Throwable $e): string
+    {
+        // Session lost between leaving for Google and coming back (state mismatch); it has no message of its own.
+        if ($e instanceof InvalidStateException) {
+            return '[InvalidStateException] The sign-in session was lost or expired (state mismatch). '
+                .'Start again from the login page, and make sure cookies are allowed.';
+        }
+
+        $message = $e->getMessage() ?: 'no message';
+
+        // Google answered with an HTTP error: show its own error code and description (Guzzle truncates the body).
+        if ($e instanceof BadResponseException) {
+            $body = (string) $e->getResponse()->getBody();
+            $json = json_decode($body, true);
+            $reason = is_array($json) && is_string($json['error'] ?? null)
+                ? $json['error'].(is_string($json['error_description'] ?? null) ? ' - '.$json['error_description'] : '')
+                : $body;
+            $message = 'HTTP '.$e->getResponse()->getStatusCode().' from Google: '.$reason;
+        }
+
+        // Drop Guzzle's "(see https://curl.se/...)" pointer; keep the rest exactly.
+        $message = trim(preg_replace('/\s*\(see https:\/\/curl\.se\/[^)]*\)/', '', $message));
+
+        return '['.class_basename($e).'] '.Str::limit($message, 500);
     }
 
     private function fail(string $intent, string $field, string $message): RedirectResponse

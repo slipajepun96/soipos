@@ -1,11 +1,17 @@
 <?php
 
+use App\Http\Middleware\EnsureMasterAdmin;
+use App\Http\Middleware\EnsureStoreSelected;
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ResolveStore;
 use App\Support\ErrorDescriber;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -15,32 +21,36 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Production runs behind Cloudflare Tunnel -> nginx (cloudflared connects from localhost).
+        // Trust its X-Forwarded-* headers so Laravel knows the visitor's real scheme (https), host and IP.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->web(append: [
-            \App\Http\Middleware\ResolveStore::class,
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            ResolveStore::class,
+            HandleInertiaRequests::class,
+            AddLinkHeadersForPreloadedAssets::class,
         ]);
 
         // The store must be known before route model binding looks records up.
         $middleware->prependToPriorityList(
-            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            prepend: \App\Http\Middleware\ResolveStore::class,
+            before: SubstituteBindings::class,
+            prepend: ResolveStore::class,
         );
         $middleware->prependToPriorityList(
-            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            prepend: \App\Http\Middleware\EnsureStoreSelected::class,
+            before: SubstituteBindings::class,
+            prepend: EnsureStoreSelected::class,
         );
 
         $middleware->alias([
-            'store' => \App\Http\Middleware\EnsureStoreSelected::class,
-            'master' => \App\Http\Middleware\EnsureMasterAdmin::class,
+            'store' => EnsureStoreSelected::class,
+            'master' => EnsureMasterAdmin::class,
         ]);
 
         // Signed-in visitors of guest pages (login): admins go to the admin area, staff to the POS.
-        $middleware->redirectUsersTo(fn (\Illuminate\Http\Request $request) => $request->user()?->is_master_admin && ! $request->session()->has('store_id')
+        $middleware->redirectUsersTo(fn (Request $request) => $request->user()?->is_master_admin && ! $request->session()->has('store_id')
             ? route('admin.dashboard')
             : route('dashboard'));
-        $middleware->redirectGuestsTo(fn (\Illuminate\Http\Request $request) => $request->is('admin', 'admin/*') ? route('admin.login') : route('login'));
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('admin', 'admin/*') ? route('admin.login') : route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Inertia / axios requests get a JSON message with the specific reason,
