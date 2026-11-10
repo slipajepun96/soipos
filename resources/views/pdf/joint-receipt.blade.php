@@ -54,7 +54,7 @@
             @foreach ($sale->items as $item)
                 <tr><td colspan="2" class="item-name bold">{{ $item->option_label ?: trim($item->product_name.' '.$item->product_size) }}</td></tr>
                 <tr>
-                    <td class="muted">{{ $qty($item->quantity) }} x {{ $money($item->unit_price) }}</td>
+                    <td class="muted">{{ $qty($item->quantity) }}{{ strtolower((string) $item->product_unit) === 'kg' ? ' kg' : '' }} x {{ $money($item->unit_price) }}{{ strtolower((string) $item->product_unit) === 'kg' ? '/kg' : '' }}</td>
                     <td class="right">{{ $money($item->line_total) }}</td>
                 </tr>
             @endforeach
@@ -76,7 +76,7 @@
         @if ($first->payment_reference)
             <tr><td>Ref</td><td class="right">{{ $first->payment_reference }}</td></tr>
         @endif
-        <tr><td>Items</td><td class="right">{{ $qty($sales->sum(fn ($s) => $s->items->sum('quantity'))) }}</td></tr>
+        <tr><td>Items</td><td class="right">{{ $qty($sales->sum(fn ($s) => $s->items->sum(fn ($i) => strtolower((string) $i->product_unit) === 'kg' ? 1 : $i->quantity))) }}</td></tr>
     </table>
 
     <div class="rule"></div>

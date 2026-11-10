@@ -42,7 +42,7 @@ class SaleService
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'string',
                 StoreRule::exists('products')->where(fn ($q) => $q->where('is_active', '1'))],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.quantity' => ['required', 'numeric', 'min:0.001'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'pay_later' => ['boolean'],
@@ -269,6 +269,7 @@ class SaleService
     /** Turn submitted items into priced lines. */
     private function resolveItems(array $items): array
     {
+        Product::assertQuantities($items);
         $products = Product::whereIn('id', collect($items)->pluck('product_id'))->get()->keyBy('id');
 
         return collect($items)->map(function ($item) use ($products) {

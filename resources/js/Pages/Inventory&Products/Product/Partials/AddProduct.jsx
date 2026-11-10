@@ -4,7 +4,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import TrackStockField from '@/Components/inventory/TrackStockField';
+import TrackStockField, { SoldByField } from '@/Components/inventory/TrackStockField';
 import TextArea from '@/Components/TextArea';
 import {
     Dialog,
@@ -45,6 +45,7 @@ export default function AddProduct({ product_categories, suppliers, products = [
         product_supplier_id: '',
         product_low_stock_limit: '',
         track_stock: true,
+        sold_by: 'unit',
         is_bundle: false,
         bundle_items: [],
     });
@@ -71,6 +72,7 @@ export default function AddProduct({ product_categories, suppliers, products = [
                     'product_num_of_measure',
                     'product_low_stock_limit',
                     'track_stock',
+                    'sold_by',
                     'is_bundle',
                     'bundle_items',
                 );
@@ -161,8 +163,10 @@ export default function AddProduct({ product_categories, suppliers, products = [
                                 />
                             </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">Size only describes one unit (e.g. 500 Milliliter bottle). Stock, sales and orders are always counted in units.</p>
+                        <SoldByField data={data} setData={setData} />
+                        {data.sold_by !== 'weight' && <p className="text-xs text-muted-foreground">Size only describes one unit (e.g. 500 Milliliter bottle). Stock, sales and orders are always counted in units.</p>}
                         <div className="grid flex-1 gap-2 md:grid-cols-3">
+                            {data.sold_by !== 'weight' && (<>
                             <div>
                                 <InputLabel
                                     htmlFor="product_num_of_measure"
@@ -220,12 +224,13 @@ export default function AddProduct({ product_categories, suppliers, products = [
                                     className="mt-2"
                                 />
                             </div>
+                            </>)}
                             <div>
                                 <InputLabel
                                     htmlFor="product_price"
                                     value={
                                         <>
-                                            Sales Price (RM)<span className="text-destructive">*</span>
+                                            {data.sold_by === 'weight' ? 'Price per kg (RM)' : 'Sales Price (RM)'}<span className="text-destructive">*</span>
                                         </>
                                     }
                                 />

@@ -121,7 +121,7 @@
                         @if ($item->option_label && $item->product_id)<div class="muted">{{ trim($item->product_name.' '.$item->product_size) }}</div>@endif
                         @if ($item->product_sku_code)<div class="muted">SKU {{ $item->product_sku_code }}</div>@endif
                     </td>
-                    <td class="right">{{ $qty($item->quantity) }}</td>
+                    <td class="right">{{ $qty($item->quantity) }}{{ strtolower((string) $item->product_unit) === 'kg' ? ' kg' : '' }}</td>
                     <td class="right">{{ $money($item->unit_price) }}</td>
                     <td class="right">{{ $money($item->line_total) }}</td>
                 </tr>

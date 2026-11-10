@@ -13,6 +13,40 @@ const TYPES = [
     { value: 'bundle', label: 'Bakul', hint: 'A set of other products. Selling one takes stock out of each item; the receipt shows the Bakul.' },
 ];
 
+/**
+ * Unit or weight. Weight products are priced per kg and sold in kg (e.g. strawberries);
+ * a Bakul is always sold by unit.
+ */
+export function SoldByField({ data, setData }) {
+    if (data.is_bundle) return null;
+    const options = [
+        ['unit', 'By unit', 'Pack, bottle, piece…'],
+        ['weight', 'By weight (kg)', 'Price per kg, weighed at the counter'],
+    ];
+
+    return (
+        <div>
+            <InputLabel value="Sold by" />
+            <div className="mt-1 grid grid-cols-2 gap-2">
+                {options.map(([value, label, hint]) => (
+                    <button
+                        key={value}
+                        type="button"
+                        onClick={() => setData('sold_by', value)}
+                        className={cn(
+                            'rounded-md border p-2 text-left text-sm transition-colors',
+                            (data.sold_by || 'unit') === value ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-accent',
+                        )}
+                    >
+                        <span className="block font-medium">{label}</span>
+                        <span className="block text-xs text-muted-foreground">{hint}</span>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 /** Current stock type of the form data. */
 const typeOf = (data) => (data.is_bundle ? 'bundle' : data.track_stock === false ? 'none' : 'stock');
 
@@ -30,6 +64,7 @@ export default function TrackStockField({ data, setData, errors, products = [], 
         ...d,
         track_stock: value === 'stock',
         is_bundle: value === 'bundle',
+        sold_by: value === 'bundle' ? 'unit' : d.sold_by,
         bundle_items: value === 'bundle' && !(d.bundle_items ?? []).length ? [{ product_id: '', quantity: 1 }] : d.bundle_items ?? [],
     }));
     const setItems = (next) => setData('bundle_items', next);
@@ -64,7 +99,7 @@ export default function TrackStockField({ data, setData, errors, products = [], 
                 <div>
                     <InputLabel
                         htmlFor="product_low_stock_limit"
-                        value={<>Low Stock Limit (units)<span className="text-destructive">*</span></>}
+                        value={<>Low Stock Limit ({data.sold_by === 'weight' ? 'kg' : 'units'})<span className="text-destructive">*</span></>}
                     />
                     <TextInput
                         id="product_low_stock_limit"
@@ -82,7 +117,7 @@ export default function TrackStockField({ data, setData, errors, products = [], 
                 <div className="space-y-2 rounded-md border p-3">
                     <div className="flex items-center justify-between">
                         <InputLabel value={<>Items in one Bakul<span className="text-destructive">*</span></>} />
-                        <span className="text-xs text-muted-foreground">Qty per Bakul</span>
+                        <span className="text-xs text-muted-foreground">Qty per Bakul (kg for weighed items)</span>
                     </div>
                     {items.map((item, index) => (
                         <div key={index} className="space-y-1">
@@ -97,8 +132,9 @@ export default function TrackStockField({ data, setData, errors, products = [], 
                                 </div>
                                 <Input
                                     type="number"
-                                    min="1"
-                                    step="1"
+                                    inputMode="decimal"
+                                    min="0.001"
+                                    step={choices.find((p) => p.id === item.product_id)?.sold_by === 'weight' ? '0.001' : '1'}
                                     value={item.quantity}
                                     onChange={(e) => updateItem(index, { quantity: e.target.value })}
                                     className="w-20 text-right"

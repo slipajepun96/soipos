@@ -33,14 +33,24 @@ export const DOC_TYPES = {
     'Item Disposal Note': { label: 'Item Disposal Note', short: 'Disposal', party: 'Source' },
 };
 
-/** Stock is counted in whole units: "1 unit", "12 units". */
-export function formatUnits(value) {
+/** Sold by weight: priced per kg, quantities in kg. */
+export const isWeighed = (product) => product?.sold_by === 'weight';
+
+/** Weight in kg with up to 3 decimals: "0.735", "2". */
+export function formatKg(value) {
+    return Number(value || 0).toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
+}
+
+/** Stock is counted in whole units ("12 units"), or in kg for products sold by weight ("2.4 kg"). */
+export function formatUnits(value, product = null) {
     const n = Number(value || 0);
+    if (isWeighed(product)) return `${formatKg(n)} kg`;
     return `${formatQty(n)} ${n === 1 ? 'unit' : 'units'}`;
 }
 
-/** A product's size is only a description of one unit, e.g. "500 Milliliter". */
+/** A product's size is only a description of one unit, e.g. "500 Milliliter" (none when sold by weight). */
 export function productSize(product) {
+    if (isWeighed(product)) return '';
     return [product?.product_num_of_measure, product?.product_unit].filter(Boolean).join(' ');
 }
 

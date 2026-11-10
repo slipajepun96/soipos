@@ -56,7 +56,11 @@
                     @if ($item->packs)
                         {{ $qty($item->packs) }} x {{ $money($item->unit_price) }}
                     @else
-                        {{ $qty($item->quantity) }} x {{ $money($item->unit_price) }}
+                        @if (strtolower((string) $item->product_unit) === 'kg')
+                            {{ $qty($item->quantity) }} kg x {{ $money($item->unit_price) }}/kg
+                        @else
+                            {{ $qty($item->quantity) }} x {{ $money($item->unit_price) }}
+                        @endif
                     @endif
                 </td>
                 <td class="right">{{ $money($item->line_total) }}</td>
@@ -98,7 +102,7 @@
             <tr class="total"><td>BALANCE DUE</td><td class="right">{{ $money($sale->balance_due) }}</td></tr>
             @if ($sale->due_date)<tr><td>Due by</td><td class="right">{{ $sale->due_date->format('d/m/Y') }}</td></tr>@endif
         @endif
-        <tr><td>Items</td><td class="right">{{ $qty($sale->items->sum('quantity')) }}</td></tr>
+        <tr><td>Items</td><td class="right">{{ $qty($sale->items->sum(fn ($i) => strtolower((string) $i->product_unit) === 'kg' ? 1 : $i->quantity)) }}</td></tr>
     </table>
 
     @if ($sale->status === 'voided')

@@ -111,7 +111,7 @@ class JointEventController extends Controller
                 $prices = SalesEventProduct::where('sales_event_id', $store['event_id'])->pluck('price', 'product_id');
                 $products = $products->concat(Product::where('is_active', '1')->whereIn('id', $prices->keys())->orderBy('product_name')
                     ->get(['id', 'product_name', 'product_sku_code', 'product_code', 'product_unit', 'product_num_of_measure',
-                        'product_price', 'product_img_address', 'product_category_id', 'track_stock', 'is_bundle'])
+                        'product_price', 'product_img_address', 'product_category_id', 'track_stock', 'is_bundle', 'sold_by'])
                     ->map(function ($p) use ($store, $names, $prices) {
                         // Categories are per store: group the joint POS by category name instead.
                         $category = $names[$p->product_category_id] ?? 'Other';
@@ -154,7 +154,7 @@ class JointEventController extends Controller
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'string'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.quantity' => ['required', 'numeric', 'min:0.001'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', Rule::in(Sale::PAYMENT_METHODS)],
             'amount_tendered' => ['nullable', 'numeric', 'min:0'],
@@ -331,7 +331,7 @@ class JointEventController extends Controller
         return [
             'eventProducts' => SalesEventProduct::where('sales_event_id', $event->id)->get(['product_id', 'price']),
             'productOptions' => Product::where('is_active', '1')->orderBy('product_name')
-                ->get(['id', 'product_name', 'product_sku_code', 'product_unit', 'product_num_of_measure', 'product_price', 'is_bundle', 'track_stock']),
+                ->get(['id', 'product_name', 'product_sku_code', 'product_unit', 'product_num_of_measure', 'product_price', 'is_bundle', 'track_stock', 'sold_by']),
         ];
     }
 

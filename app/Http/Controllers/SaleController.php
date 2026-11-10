@@ -34,7 +34,7 @@ class SaleController extends Controller
             'products' => Product::where('is_active', '1')
                 ->orderBy('product_name')
                 ->get(['id', 'product_name', 'product_sku_code', 'product_code', 'product_unit',
-                    'product_num_of_measure', 'product_price', 'product_img_address', 'product_category_id', 'track_stock', 'is_bundle']),
+                    'product_num_of_measure', 'product_price', 'product_img_address', 'product_category_id', 'track_stock', 'is_bundle', 'sold_by']),
             'categories' => ProductCategory::orderBy('product_categories_name')
                 ->get(['id', 'product_categories_name']),
             'availableStock' => $this->ledger->saleableMap(),

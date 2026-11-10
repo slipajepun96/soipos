@@ -13,7 +13,7 @@ class ProductBundleItem extends Model
 
     protected $fillable = ['bundle_product_id', 'component_product_id', 'quantity'];
 
-    protected $casts = ['quantity' => 'integer'];
+    protected $casts = ['quantity' => 'float'];
 
     public function component(): BelongsTo
     {

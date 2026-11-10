@@ -43,17 +43,18 @@ class ProductController extends Controller
             $validatedData = $request->validate([
                 'product_category_id' => ['nullable', 'string', StoreRule::exists('product_categories')],
                 'product_name' => 'required|string|max:255',
-                'product_unit' => 'required|string|max:50',
+                'product_unit' => [$request->input('sold_by') === 'weight' ? 'nullable' : 'required', 'string', 'max:50'],
                 'product_sku_code' => 'nullable|string|max:100',
                 'product_code' => 'nullable|string|max:100',
                 'product_description' => 'nullable|string|max:1000',
                 'product_image' => self::IMAGE_RULES,
                 'remove_image' => 'nullable|boolean',
                 'product_price' => 'required|numeric',
-                'product_num_of_measure' => 'required|numeric',
+                'product_num_of_measure' => [$request->input('sold_by') === 'weight' ? 'nullable' : 'required', 'numeric'],
                 'track_stock' => 'boolean',
                 'is_bundle' => 'boolean',
-                'product_low_stock_limit' => [$request->boolean('track_stock', true) && ! $request->boolean('is_bundle') ? 'required' : 'nullable', 'integer', 'min:0'],
+                'sold_by' => ['nullable', 'in:unit,weight'],
+                'product_low_stock_limit' => [$request->boolean('track_stock', true) && ! $request->boolean('is_bundle') ? 'required' : 'nullable', 'numeric', 'min:0'],
             ]);
             // dd($validatedData);
 
@@ -80,18 +81,19 @@ class ProductController extends Controller
             $validatedData = $request->validate([
                 'product_category_id' => ['nullable', 'string', StoreRule::exists('product_categories')],
                 'product_name' => 'required|string|max:255',
-                'product_unit' => 'required|string|max:50',
+                'product_unit' => [$request->input('sold_by') === 'weight' ? 'nullable' : 'required', 'string', 'max:50'],
                 'product_sku_code' => 'nullable|string|max:100',
                 'product_code' => 'nullable|string|max:100',
                 'product_description' => 'nullable|string|max:1000',
                 'product_image' => self::IMAGE_RULES,
                 'remove_image' => 'nullable|boolean',
                 'product_price' => 'required|numeric',
-                'product_num_of_measure' => 'required|numeric',
+                'product_num_of_measure' => [$request->input('sold_by') === 'weight' ? 'nullable' : 'required', 'numeric'],
                 'product_supplier_id' => 'nullable|string|max:255',
                 'track_stock' => 'boolean',
                 'is_bundle' => 'boolean',
-                'product_low_stock_limit' => [$request->boolean('track_stock', true) && ! $request->boolean('is_bundle') ? 'required' : 'nullable', 'integer', 'min:0'],
+                'sold_by' => ['nullable', 'in:unit,weight'],
+                'product_low_stock_limit' => [$request->boolean('track_stock', true) && ! $request->boolean('is_bundle') ? 'required' : 'nullable', 'numeric', 'min:0'],
             ]);
 
             $components = $this->validateBundle($request, $product);
@@ -155,6 +157,12 @@ class ProductController extends Controller
     {
         $fields = collect($validated)->except(['product_image', 'remove_image', 'bundle_items'])->all();
         $fields['is_bundle'] = (bool) ($validated['is_bundle'] ?? false);
+        // Sold by weight: priced per kg and counted in kg; a Bakul is always sold by unit.
+        $fields['sold_by'] = ! $fields['is_bundle'] && ($validated['sold_by'] ?? 'unit') === 'weight' ? 'weight' : 'unit';
+        if ($fields['sold_by'] === 'weight') {
+            $fields['product_unit'] = 'kg';
+            $fields['product_num_of_measure'] = 1;
+        }
         if ($fields['is_bundle']) {
             $fields['track_stock'] = false;
         }
@@ -178,14 +186,14 @@ class ProductController extends Controller
             'bundle_items' => ['required', 'array', 'min:1'],
             'bundle_items.*.product_id' => ['required', 'string', 'distinct', StoreRule::exists('products')
                 ->where(fn ($q) => $q->where('is_bundle', false))],
-            'bundle_items.*.quantity' => ['required', 'integer', 'min:1'],
+            'bundle_items.*.quantity' => ['required', 'numeric', 'min:0.001'],
         ], [
             'bundle_items.required' => 'Add at least one item to the Bakul.',
             'bundle_items.min' => 'Add at least one item to the Bakul.',
             'bundle_items.*.product_id.required' => 'Choose a product for each Bakul item.',
             'bundle_items.*.product_id.distinct' => 'Each product can only be listed once in the Bakul.',
             'bundle_items.*.product_id.exists' => 'A Bakul item must be a normal product (not another Bakul).',
-            'bundle_items.*.quantity.min' => 'Each Bakul item needs a quantity of at least 1.',
+            'bundle_items.*.quantity.min' => 'Each Bakul item needs a quantity.',
         ]);
 
         if ($product) {
@@ -197,8 +205,10 @@ class ProductController extends Controller
             }
         }
 
+        Product::assertQuantities($request->input('bundle_items'), 'quantity', 'bundle_items');
+
         return collect($request->input('bundle_items'))
-            ->mapWithKeys(fn ($item) => [$item['product_id'] => (int) $item['quantity']])
+            ->mapWithKeys(fn ($item) => [$item['product_id'] => round((float) $item['quantity'], 3)])
             ->all();
     }
 

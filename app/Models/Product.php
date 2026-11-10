@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class Product extends Model
 {
@@ -39,6 +40,7 @@ class Product extends Model
         'product_low_stock_limit',
         'track_stock',
         'is_bundle',
+        'sold_by',
     ];
 
     /** false = sold without keeping stock (no stock checks, no stock documents). */
@@ -48,6 +50,36 @@ class Product extends Model
     public function scopeStocked($query)
     {
         return $query->where('track_stock', true)->where('is_bundle', false);
+    }
+
+    /** Sold by weight: price per kg, quantities in kg (up to 3 decimals). */
+    public function isWeighed(): bool
+    {
+        return $this->sold_by === 'weight';
+    }
+
+    /**
+     * Products sold by unit must be sold, received and counted in whole units; products sold
+     * by weight allow up to 3 decimals (grams). Throws a validation error naming the line.
+     *
+     * @param  iterable  $items  rows with product_id and the quantity field
+     */
+    public static function assertQuantities(iterable $items, string $field = 'quantity', string $prefix = 'items'): void
+    {
+        $items = collect($items);
+        $products = static::withoutGlobalScope('store')->whereIn('id', $items->pluck('product_id')->filter())->get()->keyBy('id');
+        foreach ($items as $index => $item) {
+            $product = $products->get($item['product_id'] ?? null);
+            $qty = (float) ($item[$field] ?? 0);
+            if (! $product) {
+                continue;
+            }
+            if ($product->isWeighed() ? abs($qty * 1000 - round($qty * 1000)) > 0.0001 : abs($qty - round($qty)) > 0.0001) {
+                throw ValidationException::withMessages(["{$prefix}.{$index}.{$field}" => $product->isWeighed()
+                    ? "{$product->product_name}: weight can have at most 3 decimals (grams)."
+                    : "{$product->product_name} is sold by unit: enter a whole number."]);
+            }
+        }
     }
 
     /** Components of a bundle ("Bakul"); empty for normal products. */
@@ -69,6 +101,9 @@ class Product extends Model
     /** Size of one unit, e.g. "500 Milliliter" (descriptive only; stock is counted in units). */
     public function sizeLabel(): ?string
     {
+        if ($this->isWeighed()) {
+            return null; // priced per kg: the weight sold is the quantity
+        }
         $size = trim(implode(' ', array_filter([$this->product_num_of_measure, $this->product_unit], fn ($v) => $v !== null && $v !== '')));
 
         return $size === '' ? null : $size;

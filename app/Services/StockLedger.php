@@ -151,7 +151,9 @@ class StockLedger
 
             if ($requested - $available > 0.00005) {
                 throw ValidationException::withMessages([
-                    'items' => "{$product->product_name} has only ".(int) $available.' left in stock.',
+                    'items' => "{$product->product_name} has only ".($product->isWeighed()
+                        ? rtrim(rtrim(number_format(max(0, $available), 3, '.', ''), '0'), '.').' kg'
+                        : (int) $available).' left in stock.',
                 ]);
             }
 
