@@ -72,7 +72,7 @@ export default function ProductCombobox({ id, products, value, onChange, availab
                                 </span>
                                 {available && (
                                     <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                                        {formatUnits(available[product.id] || 0)}
+                                        {(product.track_stock === false && !product.is_bundle) || available[product.id] === null ? 'No stock kept' : formatUnits(available[product.id] || 0)}
                                     </span>
                                 )}
                             </button>

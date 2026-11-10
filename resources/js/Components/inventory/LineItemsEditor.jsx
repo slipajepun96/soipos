@@ -86,7 +86,8 @@ export default function LineItemsEditor({
                         {lines.map((line) => {
                             const product = productById(line.product_id);
                             const onHand = Number(available?.[line.product_id] || 0);
-                            const overdrawn = mode === 'out' && line.product_id && Number(line.quantity || 0) > onHand;
+                            const unstocked = (product?.track_stock === false && !product?.is_bundle) || available?.[line.product_id] === null;
+                            const overdrawn = mode === 'out' && line.product_id && !unstocked && Number(line.quantity || 0) > onHand;
                             const difference = line.counted_quantity === '' ? null : Number(line.counted_quantity) - onHand;
 
                             return (
@@ -107,7 +108,7 @@ export default function LineItemsEditor({
 
                                     {(mode === 'out' || mode === 'count') && (
                                         <TableCell className="pt-4 text-right tabular-nums text-muted-foreground">
-                                            {line.product_id ? formatQty(onHand) : '—'}
+                                            {line.product_id && !unstocked ? formatQty(onHand) : '—'}
                                         </TableCell>
                                     )}
 

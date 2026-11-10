@@ -21,7 +21,7 @@ class Sale extends Model
         'subtotal', 'discount', 'total', 'payment_method', 'payment_reference',
         'amount_paid', 'amount_tendered', 'balance_due', 'payment_status', 'change_due',
         'status', 'void_reason', 'voided_by', 'voided_at', 'notes',
-        'cashier_id', 'cashier_name',
+        'cashier_id', 'cashier_name', 'joint_checkout_id', 'collected_by_store_id',
     ];
 
     protected $casts = [

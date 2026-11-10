@@ -16,6 +16,7 @@ class Setting extends Model
     public const STORE_KEYS = [
         'store_name', 'company_name', 'company_reg_no', 'address', 'phone', 'email', 'receipt_footer',
         'duitnow_qr', // URL path of the store's DuitNow QR picture, shown at the POS for e-wallet payments
+        'bank_name', 'bank_account_no', 'bank_account_name', // shown on invoices and at the POS for bank transfers
     ];
 
     public $incrementing = false;
@@ -41,6 +42,17 @@ class Setting extends Model
         return collect(self::STORE_KEYS)
             ->mapWithKeys(fn ($key) => [$key => array_key_exists($key, $saved) ? $saved[$key] : ($defaults[$key] ?? null)])
             ->all();
+    }
+
+    /** The store's bank account for transfers, or null when not set. */
+    public static function bankAccount(?string $storeId = null): ?array
+    {
+        $s = self::store($storeId);
+        if (! $s['bank_name'] || ! $s['bank_account_no']) {
+            return null;
+        }
+
+        return ['bank_name' => $s['bank_name'], 'account_no' => $s['bank_account_no'], 'account_name' => $s['bank_account_name'] ?: ($s['company_name'] ?: $s['store_name'])];
     }
 
     public static function setMany(array $values, ?string $storeId = null): void

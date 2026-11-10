@@ -28,4 +28,10 @@ class SalesEvent extends Model
     {
         return $this->hasMany(Sale::class);
     }
+
+    /** Partner stores of a joint event this store hosts. */
+    public function partners(): HasMany
+    {
+        return $this->hasMany(SalesEventPartner::class);
+    }
 }

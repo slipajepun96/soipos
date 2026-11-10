@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import InventoryTabs from '@/Components/inventory/InventoryTabs';
 import DataTable from '@/Components/DataTable';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Plus, FileText } from 'lucide-react';
@@ -147,7 +148,7 @@ export default function ProductIndex({ products , product_categories , suppliers
             Cell: ({ row }) => (
                 <div className="flex space-x-2 justify-end">
                     <ViewProductDetail product={ row } suppliers={ suppliers } product_categories={ product_categories }/>
-                    <EditProduct product={row} product_categories={product_categories} />
+                    <EditProduct product={row} product_categories={product_categories} products={products} />
                     <DeleteProduct product={row} />
                 </div>
                 
@@ -163,10 +164,11 @@ export default function ProductIndex({ products , product_categories , suppliers
                 </h2>
             }
         >
-            <Head title="Product" />
+            <Head title="Products" />
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">
+                    <InventoryTabs className="mx-2 mb-3 mt-4" />
                     <Tabs defaultValue="product" className="w-full px-2">
                         <TabsList>
                             <TabsTrigger value="product">Product</TabsTrigger>
@@ -174,7 +176,7 @@ export default function ProductIndex({ products , product_categories , suppliers
                         </TabsList>
                         <TabsContent value="product">
                             <div className='py-2'>
-                                <AddProduct product_categories={product_categories} suppliers={suppliers} />  
+                                <AddProduct product_categories={product_categories} suppliers={suppliers} products={products} />  
                             </div>
                               
                             <DataTable columns={columns} data={products} />

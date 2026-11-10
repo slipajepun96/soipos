@@ -160,6 +160,18 @@
         </div>
     @endif
 
+    @if (! $voided && $sale->balance_due > 0 && $shop['bank_name'] && $shop['bank_account_no'])
+        <div class="section">
+            <div class="label" style="margin-bottom: 4px">Payment by bank transfer</div>
+            <table class="meta" style="width: 55%">
+                <tr><td class="muted" style="width: 35%">Bank</td><td class="bold">{{ $shop['bank_name'] }}</td></tr>
+                <tr><td class="muted">Account no.</td><td class="bold">{{ $shop['bank_account_no'] }}</td></tr>
+                <tr><td class="muted">Account name</td><td class="bold">{{ $shop['bank_account_name'] ?: ($shop['company_name'] ?: $shop['store_name']) }}</td></tr>
+                <tr><td class="muted">Reference</td><td>{{ $sale->receipt_no }}</td></tr>
+            </table>
+        </div>
+    @endif
+
     @if ($sale->notes)
         <div class="section">
             <div class="label">Notes</div>

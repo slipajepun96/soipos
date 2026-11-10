@@ -34,12 +34,13 @@ class SaleController extends Controller
             'products' => Product::where('is_active', '1')
                 ->orderBy('product_name')
                 ->get(['id', 'product_name', 'product_sku_code', 'product_code', 'product_unit',
-                    'product_num_of_measure', 'product_price', 'product_img_address', 'product_category_id']),
+                    'product_num_of_measure', 'product_price', 'product_img_address', 'product_category_id', 'track_stock', 'is_bundle']),
             'categories' => ProductCategory::orderBy('product_categories_name')
                 ->get(['id', 'product_categories_name']),
-            'availableStock' => $this->ledger->availableMap(),
+            'availableStock' => $this->ledger->saleableMap(),
             'paymentMethods' => Sale::PAYMENT_METHODS,
             'duitnowQr' => Setting::store()['duitnow_qr'],
+            'bankAccount' => Setting::bankAccount(),
             'events' => SalesEvent::where('status', 'open')->orderBy('start_date')->get(['id', 'name', 'location', 'start_date', 'end_date']),
         ]);
     }

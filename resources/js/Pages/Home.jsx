@@ -1,7 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
-    ArrowRight, Boxes, CalendarDays, ClipboardList, FileText, Package, Receipt, Settings,
-    ShoppingCart, Truck, UserPlus,
+    ArrowRight, Boxes, CalendarDays, ClipboardList, FileText, Receipt, Settings, ShoppingCart,
 } from 'lucide-react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatMoney } from '@/lib/format';
@@ -39,26 +38,10 @@ function sections(s) {
             stat: s.open_events ? `${plural(s.open_events, 'event')} open` : 'No open events',
         },
         {
-            title: 'Products', route: 'product.index', icon: Package,
-            description: 'Products, prices, photos and categories.',
-            stat: `${plural(s.products, 'product')}`,
-        },
-        {
             title: 'Inventory', route: 'inventory.index', icon: Boxes,
-            description: 'Stock in, stock out, counts and stock cards.',
-            stat: s.low_stock ? `${s.low_stock} low on stock` : 'Stock levels OK',
+            description: 'Stock, products and suppliers.',
+            stat: `${plural(s.products, 'product')} · ${plural(s.suppliers, 'supplier')}${s.low_stock ? ` · ${s.low_stock} low on stock` : ''}`,
             alert: s.low_stock > 0,
-        },
-        {
-            title: 'Suppliers', route: 'supplier.index', icon: Truck,
-            description: 'Who you buy stock from.',
-            stat: `${plural(s.suppliers, 'supplier')}`,
-        },
-        {
-            title: 'Agents', route: 'agent.index', icon: UserPlus,
-            description: 'Agent sign-ups and your registration link.',
-            stat: s.pending_agents ? `${s.pending_agents} waiting for approval` : 'No new sign-ups',
-            alert: s.pending_agents > 0,
         },
         {
             title: 'Settings', route: 'settings.edit', icon: Settings,

@@ -3,7 +3,6 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\AgentController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
@@ -12,6 +11,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentProofController;
 use App\Http\Controllers\SalesEventController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\JointEventController;
 use App\Http\Controllers\PreorderSessionController;
 use App\Http\Controllers\PublicPreorderController;
 use App\Http\Controllers\PosPreorderController;
@@ -23,11 +23,6 @@ use Inertia\Inertia;
 
 Route::get('/', HomeController::class)->middleware(['auth', 'store'])->name('dashboard');
 
-// Public agent sign-up, one link per store
-Route::get('/agent/register', [AgentController::class, 'registerPicker'])->name('agent.register.picker');
-Route::get('/agent/register/{code}', [AgentController::class, 'registerIndex'])->name('agent.register');
-Route::post('/agent/register/{code}', [AgentController::class, 'saveAgentRegistration'])->middleware('throttle:public-form')->name('agent.register.save');
-Route::get('/agent/register/{code}/success', [AgentController::class, 'agentRegistrationSuccess'])->name('agent.register.success');
 
 // Master admin: stores and users
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -98,6 +93,13 @@ Route::middleware(['auth', 'store'])->group(function () {
     Route::put('/sales/events/{event}', [SalesEventController::class, 'update'])->name('sales.events.update');
     Route::post('/sales/events/{event}/toggle', [SalesEventController::class, 'toggle'])->name('sales.events.toggle');
     Route::delete('/sales/events/{event}', [SalesEventController::class, 'destroy'])->name('sales.events.destroy');
+    // Joint events: the host sells for partner stores and settles with them afterwards
+    Route::post('/sales/events/{event}/partners/{partner}/settle', [JointEventController::class, 'settle'])->name('sales.events.partners.settle');
+    Route::put('/sales/events/{event}/products', [JointEventController::class, 'saveProducts'])->name('sales.events.products.save');
+    Route::get('/sales/events/{event}/joint-pos', [JointEventController::class, 'pos'])->name('sales.events.jointPos');
+    Route::post('/sales/events/{event}/joint-checkout', [JointEventController::class, 'checkout'])->name('sales.events.jointCheckout');
+    Route::get('/sales/joint/{joint}/receipt', [JointEventController::class, 'receipt'])->name('sales.joint.receipt');
+    Route::post('/sales/joint/{joint}/proof', [JointEventController::class, 'proof'])->name('sales.joint.proof');
     Route::get('/sales/{sale}/invoice', [InvoiceController::class, 'pdf'])->name('sales.invoice');
     Route::post('/sales/{sale}/payments', [InvoiceController::class, 'addPayment'])->name('sales.payments.store');
     Route::delete('/sales/{sale}/payments/{payment}', [InvoiceController::class, 'deletePayment'])->name('sales.payments.destroy');
@@ -159,8 +161,6 @@ Route::middleware(['auth', 'store'])->group(function () {
     Route::post('/supplier/deactivate', [SupplierController::class, 'deactivateSupplier'])->name('supplier.deactivateSupplier');
     Route::post('/supplier/delete', [SupplierController::class, 'deleteSupplier'])->name('supplier.deleteSupplier');
 
-    //Agent
-    Route::get('/agent', [AgentController::class, 'index'])->name('agent.index');
 });
 
 require __DIR__.'/auth.php';

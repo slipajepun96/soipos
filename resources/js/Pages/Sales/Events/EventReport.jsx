@@ -15,6 +15,7 @@ import {
 } from '@/Components/ui/table';
 import InventoryPage from '@/Components/inventory/InventoryPage';
 import SaleDetailDialog from '@/Components/sales/SaleDetailDialog';
+import JointEventPanel from '@/Components/sales/JointEventPanel';
 import { DocTypeBadge, PaymentStatusBadge } from '@/Components/sales/SaleBadges';
 import { formatDate, formatMoney, formatQty } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -22,7 +23,7 @@ import { eventDates } from './EventsIndex';
 
 const PAYMENT_METHODS = ['Cash', 'Card', 'E-Wallet', 'Bank Transfer'];
 
-export default function EventReport({ event, summary, by_method = [], by_day = [], products = [], sales = [] }) {
+export default function EventReport({ event, summary, by_method = [], by_day = [], products = [], sales = [], joint = null, eventProducts = [], productOptions = [] }) {
     const [viewing, setViewing] = useState(null);
     const maxDay = Math.max(1, ...by_day.map((d) => d.net));
     const revenueTotal = products.reduce((s, p) => s + p.revenue, 0);
@@ -47,6 +48,13 @@ export default function EventReport({ event, summary, by_method = [], by_day = [
                 </Button>
             )}
         >
+            <JointEventPanel
+                event={event}
+                joint={joint}
+                eventProducts={eventProducts}
+                productOptions={productOptions}
+            />
+
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <Stat label="Net sales" value={`RM ${formatMoney(summary.net)}`} hint={summary.discount > 0 ? `After RM ${formatMoney(summary.discount)} discount` : undefined} strong />
                 <Stat label="Transactions" value={summary.count} hint={`Avg RM ${formatMoney(summary.average)} per sale`} />

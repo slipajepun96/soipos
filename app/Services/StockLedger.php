@@ -56,6 +56,84 @@ class StockLedger
     }
 
     /**
+     * Stock on hand plus, for each active bundle, how many can be made from its components
+     * (null = no limit, when none of its components keep stock). Used where products are sold.
+     */
+    public function saleableMap(): array
+    {
+        $available = $this->availableMap();
+        $bundles = Product::where('is_active', '1')->where('is_bundle', true)->with('bundleItems.component')->get();
+
+        foreach ($bundles as $bundle) {
+            $limit = null;
+            foreach ($bundle->bundleItems as $item) {
+                $component = $item->component;
+                if (! $component || ! $component->track_stock || $component->is_bundle) {
+                    continue; // no-stock components never limit the bundle
+                }
+                $makeable = floor(max(0, (float) ($available[$component->id] ?? 0)) / max(1, $item->quantity));
+                $limit = $limit === null ? $makeable : min($limit, $makeable);
+            }
+            $available[$bundle->id] = $limit;
+        }
+
+        return $available;
+    }
+
+    /**
+     * Replace bundle lines with one line per component. The bundle's price is shared across
+     * the components by their selling price (or by quantity when none has a price), so the
+     * stock-out document still adds up to what was charged. Other lines pass through.
+     *
+     * @param  array  $lines  each with product, quantity, line_total
+     */
+    public function expandBundles(array $lines): array
+    {
+        $out = [];
+        foreach ($lines as $line) {
+            $bundle = $line['product'] ?? null;
+            if (! $bundle || ! $bundle->is_bundle) {
+                $out[] = $line;
+                continue;
+            }
+
+            $items = $bundle->bundleItems()->with('component')->get();
+            if ($items->isEmpty() || $items->contains(fn ($i) => ! $i->component)) {
+                throw ValidationException::withMessages([
+                    'items' => "{$bundle->product_name} has no items set up, or one of its items no longer exists.",
+                ]);
+            }
+
+            $bundles = (float) $line['quantity'];
+            $weights = $items->map(fn ($i) => (float) $i->component->product_price * $i->quantity);
+            if ($weights->sum() <= 0) {
+                $weights = $items->map(fn ($i) => (float) $i->quantity);
+            }
+            $totalWeight = $weights->sum();
+            $remaining = round((float) $line['line_total'], 2);
+
+            foreach ($items->values() as $index => $item) {
+                $quantity = round($bundles * $item->quantity, 4);
+                $share = $index === $items->count() - 1
+                    ? $remaining
+                    : round((float) $line['line_total'] * $weights[$index] / $totalWeight, 2);
+                $remaining = round($remaining - $share, 2);
+
+                $out[] = [
+                    'product' => $item->component,
+                    'product_id' => $item->component->id,
+                    'quantity' => $quantity,
+                    'unit_price' => $quantity > 0 ? round($share / $quantity, 4) : 0,
+                    'stock_unit_price' => $quantity > 0 ? round($share / $quantity, 4) : 0,
+                    'line_total' => $share,
+                ];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * Build "out" lines at average cost after checking there is enough stock.
      * Must run inside a transaction.
      */

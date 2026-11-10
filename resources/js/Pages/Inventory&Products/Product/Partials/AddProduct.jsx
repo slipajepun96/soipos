@@ -4,6 +4,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import TrackStockField from '@/Components/inventory/TrackStockField';
 import TextArea from '@/Components/TextArea';
 import {
     Dialog,
@@ -26,7 +27,9 @@ import ProductImageInput from '@/Components/inventory/ProductImageInput';
 // import { Label } from '@/Components/ui/label';
 
 
-export default function AddProduct({ product_categories, suppliers }) {
+const NO_CATEGORY = '__none';
+
+export default function AddProduct({ product_categories, suppliers, products = [] }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         product_category_id: '',
@@ -41,6 +44,9 @@ export default function AddProduct({ product_categories, suppliers }) {
         product_num_of_measure: '',
         product_supplier_id: '',
         product_low_stock_limit: '',
+        track_stock: true,
+        is_bundle: false,
+        bundle_items: [],
     });
 
     // console.log(product_categories);
@@ -64,6 +70,9 @@ export default function AddProduct({ product_categories, suppliers }) {
                     'product_price',
                     'product_num_of_measure',
                     'product_low_stock_limit',
+                    'track_stock',
+                    'is_bundle',
+                    'bundle_items',
                 );
                 // Close the dialog
                 console.log('Product saved successfully');
@@ -294,13 +303,14 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     htmlFor="product_category_id"
                                     value={
                                         <>
-                                            Product Category<span className="text-destructive">*</span>
+                                            Product Category <span className="text-muted-foreground">(optional)</span>
                                         </>
                                     }
                                 />
                                 <Select
+                                    value={data.product_category_id || NO_CATEGORY}
                                     onValueChange={(value) =>
-                                        setData('product_category_id', value)
+                                        setData('product_category_id', value === NO_CATEGORY ? '' : value)
                                 }>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select Product Category" />
@@ -309,6 +319,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                         id="product_category_id"
                                         name="product_category_id"
                                     >
+                                        <SelectItem value={NO_CATEGORY}>No category</SelectItem>
                                         {product_categories.map((category) => (
                                             <SelectItem 
                                                 key={category.id}
@@ -362,30 +373,7 @@ export default function AddProduct({ product_categories, suppliers }) {
                                     className="mt-2"
                                 />
                             </div> */}
-                            <div>
-                                <InputLabel
-                                    htmlFor="product_low_stock_limit"
-                                    value={
-                                        <>
-                                            Low Stock Limit (units)<span className="text-destructive">*</span>
-                                        </>
-                                    }
-                                />
-                                <TextInput
-                                    id="product_low_stock_limit"
-                                    name="product_low_stock_limit"
-                                    value={data.product_low_stock_limit}
-                                    className="mt-1 block w-full"
-                                    onChange={(e) =>
-                                        setData('product_low_stock_limit', e.target.value)
-                                    }
-                                    required
-                                />
-                                <InputError
-                                    message={errors.product_low_stock_limit}
-                                    className="mt-2"
-                                />
-                            </div>
+                            <TrackStockField data={data} setData={setData} errors={errors} products={products} />
                         </div>
                         <PrimaryButton disabled={processing}>
                             Save

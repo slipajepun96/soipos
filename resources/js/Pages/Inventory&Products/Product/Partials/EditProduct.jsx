@@ -3,6 +3,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import TrackStockField from '@/Components/inventory/TrackStockField';
 import {
     Dialog,
     DialogContent,
@@ -21,7 +22,11 @@ import {
 import { useForm } from '@inertiajs/react';
 import ProductImageInput from '@/Components/inventory/ProductImageInput';
 
-export default function EditProduct({ product, product_categories }) {
+const NO_CATEGORY = '__none';
+
+const bundleItemsOf = (product) => (product.bundle_items ?? []).map((i) => ({ product_id: i.component_product_id, quantity: i.quantity }));
+
+export default function EditProduct({ product, product_categories, products = [] }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         id: product.id || '',
         product_category_id: product.product_category_id || '',
@@ -36,6 +41,9 @@ export default function EditProduct({ product, product_categories }) {
         product_num_of_measure: product.product_num_of_measure || '',
         product_supplier_id: product.product_supplier_id || '',
         product_low_stock_limit: product.product_low_stock_limit || '',
+        track_stock: product.track_stock !== false && product.track_stock !== 0,
+        is_bundle: !!product.is_bundle,
+        bundle_items: bundleItemsOf(product),
     });
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -55,6 +63,9 @@ export default function EditProduct({ product, product_categories }) {
             product_num_of_measure: product.product_num_of_measure || '',
             product_supplier_id: product.product_supplier_id || '',
             product_low_stock_limit: product.product_low_stock_limit || '',
+            track_stock: product.track_stock !== false && product.track_stock !== 0,
+            is_bundle: !!product.is_bundle,
+            bundle_items: bundleItemsOf(product),
         });
     }, [product, setData]);
 
@@ -223,18 +234,19 @@ export default function EditProduct({ product, product_categories }) {
                                     htmlFor="product_category_id"
                                     value={
                                         <>
-                                            Product Category<span className="text-destructive">*</span>
+                                            Product Category <span className="text-muted-foreground">(optional)</span>
                                         </>
                                     }
                                 />
                                 <Select
-                                    value={data.product_category_id}
-                                    onValueChange={(value) => setData('product_category_id', value)}
+                                    value={data.product_category_id || NO_CATEGORY}
+                                    onValueChange={(value) => setData('product_category_id', value === NO_CATEGORY ? '' : value)}
                                 >
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select Product Category" />
                                     </SelectTrigger>
                                     <SelectContent id="product_category_id" name="product_category_id">
+                                        <SelectItem value={NO_CATEGORY}>No category</SelectItem>
                                         {product_categories.map((category) => (
                                             <SelectItem key={category.id} value={category.id}>
                                                 {category.product_categories_name}
@@ -244,25 +256,7 @@ export default function EditProduct({ product, product_categories }) {
                                 </Select>
                                 <InputError message={errors.product_category_id} className="mt-2" />
                             </div>
-                            <div>
-                                <InputLabel
-                                    htmlFor="product_low_stock_limit"
-                                    value={
-                                        <>
-                                            Low Stock Limit (units)<span className="text-destructive">*</span>
-                                        </>
-                                    }
-                                />
-                                <TextInput
-                                    id="product_low_stock_limit"
-                                    name="product_low_stock_limit"
-                                    value={data.product_low_stock_limit}
-                                    className="mt-1 block w-full"
-                                    onChange={(e) => setData('product_low_stock_limit', e.target.value)}
-                                    required
-                                />
-                                <InputError message={errors.product_low_stock_limit} className="mt-2" />
-                            </div>
+                            <TrackStockField data={data} setData={setData} errors={errors} products={products} selfId={product.id} />
                         </div>
                         <PrimaryButton disabled={processing}>Update</PrimaryButton>
                     </div>

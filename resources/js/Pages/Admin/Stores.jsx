@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import { LogIn, Pencil, Plus, Store as StoreIcon, Users } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { PublicLink } from '@/Components/preorders/PreorderBits';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -20,7 +19,7 @@ export default function Stores({ stores }) {
             actions={<Button onClick={() => setEditing({})}><Plus />New store</Button>}
         >
             <p className="text-sm text-muted-foreground">
-                Each store has its own products, prices, stock, sales, events, pre-orders, suppliers, agents and settings.
+                Each store has its own products, prices, stock, sales, events, pre-orders, suppliers and settings.
                 Staff choose their store when they log in. As master admin you can open any open store.
             </p>
 
@@ -38,7 +37,10 @@ export default function Stores({ stores }) {
                                         <StoreIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                                         <span className="truncate">{s.name}</span>
                                     </p>
-                                    <p className="font-mono text-xs text-muted-foreground">{s.code}</p>
+                                    <p className="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
+                                        {s.short_code && <Badge variant="outline" className="font-mono" title="Short code used in document numbers">{s.short_code}</Badge>}
+                                        <span className="truncate">{s.code}</span>
+                                    </p>
                                 </div>
                                 <div className="flex shrink-0 items-center gap-2">
                                     <Badge variant={s.is_active ? 'secondary' : 'outline'}>{s.is_active ? 'Open' : 'Closed'}</Badge>
@@ -50,10 +52,6 @@ export default function Stores({ stores }) {
                                 <Stat label="Products" value={s.products_count} />
                                 <Stat label="Sales" value={s.sales_count} />
                                 <Stat label="Revenue" value={`RM ${formatMoney(s.revenue)}`} />
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-muted-foreground">Agent registration link</p>
-                                <PublicLink url={s.agent_link} />
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <Link href={route('admin.users.index', { store: s.id })} className="inline-flex items-center gap-1.5 text-sm underline-offset-4 hover:underline">
@@ -86,14 +84,17 @@ function Stat({ label, value }) {
 
 function StoreDialog({ store, onClose }) {
     const isNew = store && !store.id;
-    const form = useForm({ name: '', code: '', is_active: true });
+    const form = useForm({ name: '', code: '', short_code: '', is_active: true });
+    // New store: suggest a short code from the name until the admin types their own.
+    const [shortTouched, setShortTouched] = useState(false);
 
     // Load the store into the form each time the dialog opens.
     const [loadedFor, setLoadedFor] = useState(null);
     if (store && loadedFor !== store) {
         setLoadedFor(store);
-        form.setData({ name: store.name ?? '', code: store.code ?? '', is_active: store.is_active ?? true });
+        form.setData({ name: store.name ?? '', code: store.code ?? '', short_code: store.short_code ?? '', is_active: store.is_active ?? true });
         form.clearErrors();
+        setShortTouched(Boolean(store.id));
     }
 
     const submit = (e) => {
@@ -112,13 +113,39 @@ function StoreDialog({ store, onClose }) {
                     </DialogHeader>
                     <div className="space-y-2">
                         <Label htmlFor="store-name">Store name</Label>
-                        <Input id="store-name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} placeholder="e.g. Kedai Kuantan" autoFocus />
+                        <Input
+                            id="store-name"
+                            value={form.data.name}
+                            onChange={(e) => {
+                                const name = e.target.value;
+                                form.setData((d) => ({ ...d, name, short_code: shortTouched ? d.short_code : suggestShortCode(name) }));
+                            }}
+                            placeholder="e.g. Kedai Kuantan"
+                            autoFocus
+                        />
                         {form.errors.name && <p className="text-sm text-destructive">{form.errors.name}</p>}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="store-code">Store code</Label>
+                        <Label htmlFor="store-short-code">Short code</Label>
+                        <Input
+                            id="store-short-code"
+                            value={form.data.short_code}
+                            onChange={(e) => { setShortTouched(true); form.setData('short_code', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)); }}
+                            placeholder="e.g. KTN"
+                            maxLength={6}
+                            className="font-mono uppercase"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Starts every document number: invoices, receipts, stock in/out and pre-orders, e.g.{' '}
+                            <span className="font-mono">{form.data.short_code || 'KTN'}-SIN{new Date().getFullYear().toString().slice(-2)}0000001</span>.
+                            2–6 letters or numbers.{!isNew && ' Changing it only affects new documents.'}
+                        </p>
+                        {form.errors.short_code && <p className="text-sm text-destructive">{form.errors.short_code}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="store-code">Link code</Label>
                         <Input id="store-code" value={form.data.code} onChange={(e) => form.setData('code', e.target.value.toLowerCase())} placeholder="Made from the name if empty" className="font-mono" />
-                        <p className="text-xs text-muted-foreground">Used in public links, e.g. /agent/register/<span className="font-mono">{form.data.code || 'kedai-kuantan'}</span></p>
+                        <p className="text-xs text-muted-foreground">Short unique name for the store, e.g. <span className="font-mono">{form.data.code || 'kedai-kuantan'}</span></p>
                         {form.errors.code && <p className="text-sm text-destructive">{form.errors.code}</p>}
                     </div>
                     {!isNew && (
@@ -138,4 +165,13 @@ function StoreDialog({ store, onClose }) {
             </DialogContent>
         </Dialog>
     );
+}
+
+/** "Kedai Kuantan" -> "KK", "Kuantan" -> "KUA" (same rule as the server; the server keeps it unique). */
+function suggestShortCode(name) {
+    const words = name.normalize('NFD').replace(/[^A-Za-z0-9 ]+/g, ' ').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '';
+    let code = (words.length > 1 ? words.slice(0, 4).map((w) => w[0]).join('') : words[0].slice(0, 3)).toUpperCase();
+    if (!/^[A-Z]/.test(code)) code = `S${code}`;
+    return code.slice(0, 6);
 }

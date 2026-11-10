@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { Building2, Mail, MapPin, Phone, QrCode, ReceiptText, Store } from 'lucide-react';
+import { Building2, Landmark, Mail, MapPin, Phone, QrCode, ReceiptText, Store } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -17,6 +17,9 @@ export default function SystemConfigurationIndex({ settings }) {
         phone: settings.phone ?? '',
         email: settings.email ?? '',
         receipt_footer: settings.receipt_footer ?? '',
+        bank_name: settings.bank_name ?? '',
+        bank_account_no: settings.bank_account_no ?? '',
+        bank_account_name: settings.bank_account_name ?? '',
     });
     const { data, setData, errors } = form;
 
@@ -32,7 +35,7 @@ export default function SystemConfigurationIndex({ settings }) {
     });
 
     return (
-        <InventoryPage title="Settings" description="Store and company details shown on receipts.">
+        <InventoryPage title="Settings" description="Store, company and bank details shown on receipts and invoices.">
             <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div className="space-y-6">
                     <Card>
@@ -86,6 +89,24 @@ export default function SystemConfigurationIndex({ settings }) {
                         <CardContent>
                             <FormField label="Footer message" htmlFor="receipt_footer" error={errors.receipt_footer}>
                                 <Input {...field('receipt_footer')} placeholder="e.g. Thank you. Please come again." />
+                            </FormField>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Landmark className="h-4 w-4" />Bank account</CardTitle>
+                            <CardDescription>Shown on invoices and at the POS when Bank Transfer is selected.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-4 md:grid-cols-2">
+                            <FormField label="Bank name" htmlFor="bank_name" error={errors.bank_name}>
+                                <Input {...field('bank_name')} placeholder="e.g. Maybank" />
+                            </FormField>
+                            <FormField label="Account number" htmlFor="bank_account_no" error={errors.bank_account_no}>
+                                <Input {...field('bank_account_no')} inputMode="numeric" placeholder="e.g. 5123 4567 8901" />
+                            </FormField>
+                            <FormField label="Account holder name" htmlFor="bank_account_name" error={errors.bank_account_name} hint="Optional — defaults to the company name" className="md:col-span-2">
+                                <Input {...field('bank_account_name')} placeholder={data.company_name || 'e.g. Soi Trading Sdn. Bhd.'} />
                             </FormField>
                         </CardContent>
                     </Card>

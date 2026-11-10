@@ -2,20 +2,19 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { ChevronDown, LogOut, Menu, Store, X } from 'lucide-react';
+import {
+    Boxes, CalendarDays, ChevronDown, ClipboardList, FileText, House, LogOut, Menu, Receipt, ShoppingCart, Store, X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-    { label: 'Home', route: 'dashboard', match: ['dashboard'] },
-    { label: 'POS', route: 'sales.pos', match: ['sales.pos'] },
-    { label: 'Sales', route: 'sales.index', match: ['sales.index'] },
-    { label: 'Pre-orders', route: 'preorders.index', match: ['preorders.*'] },
-    { label: 'Invoices', route: 'sales.invoices.index', match: ['sales.invoices.*'] },
-    { label: 'Events', route: 'sales.events.index', match: ['sales.events.*'] },
-    { label: 'Product', route: 'product.index', match: ['product.*', 'productCategories.*'] },
-    { label: 'Inventory', route: 'inventory.index', match: ['inventory.*'] },
-    { label: 'Supplier', route: 'supplier.index', match: ['supplier.*'] },
-    { label: 'Agent', route: 'agent.index', match: ['agent.*'] },
+    { label: 'Home', route: 'dashboard', match: ['dashboard'], icon: House },
+    { label: 'POS', route: 'sales.pos', match: ['sales.pos'], icon: ShoppingCart },
+    { label: 'Sales', route: 'sales.index', match: ['sales.index'], icon: Receipt },
+    { label: 'Pre-orders', route: 'preorders.index', match: ['preorders.*'], icon: ClipboardList },
+    { label: 'Invoices', route: 'sales.invoices.index', match: ['sales.invoices.*'], icon: FileText },
+    { label: 'Events', route: 'sales.events.index', match: ['sales.events.*'], icon: CalendarDays },
+    { label: 'Inventory', route: 'inventory.index', match: ['inventory.*', 'product.*', 'productCategories.*', 'supplier.*'], icon: Boxes },
 ];
 
 const isActive = (item) => item.match.some((pattern) => route().current(pattern));
@@ -108,17 +107,18 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
-                        <div className="flex-1 space-y-1 p-3">
-                            {navItems.map((item) => (
+                        <div className="grid flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-3">
+                            {navItems.map(({ icon: Icon, ...item }) => (
                                 <Link
                                     key={item.label}
                                     href={route(item.route)}
                                     onClick={() => setMobileOpen(false)}
                                     className={cn(
-                                        'block rounded-md px-3 py-2.5 text-sm font-medium',
-                                        isActive(item) ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
+                                        'flex flex-col items-center justify-center gap-2 rounded-lg border px-2 py-4 text-sm font-medium transition-colors',
+                                        isActive(item) ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:bg-accent',
                                     )}
                                 >
+                                    <Icon className="h-6 w-6" />
                                     {item.label}
                                 </Link>
                             ))}

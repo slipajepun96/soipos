@@ -37,7 +37,24 @@ class Product extends Model
         'product_num_of_measure',
         'product_supplier_id',
         'product_low_stock_limit',
+        'track_stock',
+        'is_bundle',
     ];
+
+    /** false = sold without keeping stock (no stock checks, no stock documents). */
+    protected $casts = ['track_stock' => 'boolean', 'is_bundle' => 'boolean'];
+
+    /** Only products whose stock is kept. */
+    public function scopeStocked($query)
+    {
+        return $query->where('track_stock', true)->where('is_bundle', false);
+    }
+
+    /** Components of a bundle ("Bakul"); empty for normal products. */
+    public function bundleItems()
+    {
+        return $this->hasMany(ProductBundleItem::class, 'bundle_product_id');
+    }
 
     public function productCategory()
     {

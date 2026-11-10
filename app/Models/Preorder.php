@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToStore;
+use App\Support\CurrentStore;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,13 +42,22 @@ class Preorder extends Model
         return $this->belongsTo(Sale::class);
     }
 
-    /** Next order number, e.g. PO000123. Call inside a transaction. */
+    /**
+     * Next order number with the store's short code, e.g. KTN-PO000123 (old orders: PO000123).
+     * Each store has its own running number. Call inside a transaction.
+     */
     public static function nextNumber(): string
     {
-        $last = (int) static::withoutGlobalScope('store')->lockForUpdate()   // unique across stores
-            ->selectRaw('MAX(CAST(SUBSTRING(order_no, 3) AS UNSIGNED)) as n')
+        $short = Store::currentShortCode();
+
+        $last = (int) static::withoutGlobalScope('store')->lockForUpdate()
+            ->where('order_no', 'REGEXP', '^([A-Z0-9]{1,6}-)?PO[0-9]+$')
+            // Without a short code numbers are unprefixed, so they must stay unique across all stores.
+            ->when($short, fn ($q) => $q->where(fn ($q) => $q
+                ->where('store_id', CurrentStore::id())->orWhere('order_no', 'like', $short.'-%')))
+            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(order_no, 'PO', -1) AS UNSIGNED)) as n")
             ->value('n');
 
-        return 'PO' . str_pad($last + 1, 6, '0', STR_PAD_LEFT);
+        return ($short ? $short.'-' : '').'PO'.str_pad($last + 1, 6, '0', STR_PAD_LEFT);
     }
 }

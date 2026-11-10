@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Agent;
 use App\Models\Preorder;
 use App\Models\PreorderSession;
 use App\Models\Product;
@@ -22,7 +21,7 @@ class HomeController extends Controller
         $unpaid = (clone $live)->where('document_type', 'invoice')->where('balance_due', '>', 0);
 
         $stock = $ledger->availableMap();
-        $products = Product::where('is_active', '1')->get(['id', 'product_low_stock_limit']);
+        $products = Product::where('is_active', '1')->stocked()->get(['id', 'product_low_stock_limit']);
         $lowStock = $products->filter(function ($p) use ($stock) {
             $limit = (float) $p->product_low_stock_limit;
 
@@ -42,7 +41,6 @@ class HomeController extends Controller
                 'products' => $products->count(),
                 'low_stock' => $lowStock,
                 'suppliers' => Supplier::where('is_active', '1')->count(),
-                'pending_agents' => Agent::where('agent_status', 'pending')->count(),
             ],
         ]);
     }

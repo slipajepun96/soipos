@@ -104,6 +104,50 @@
         </tr>
     </table>
 
+    @if (! empty($joint) && $joint['role'] === 'host')
+        @php $methods = collect($joint['collected_by_method'])->filter(fn ($v) => $v > 0)->keys(); @endphp
+        <h2>Joint event settlement</h2>
+        <div class="muted" style="margin-bottom: 4px">Joint POS sales by store. All payments were collected by {{ $shop['store_name'] }}.</div>
+        <table class="list">
+            <thead>
+                <tr>
+                    <th>Store</th><th class="right">Sales</th>
+                    @foreach ($methods as $m)<th class="right">{{ $m }}</th>@endforeach
+                    <th class="right">Total (RM)</th><th class="right">Paid out (RM)</th><th class="right">Owed (RM)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($joint['stores'] as $s)
+                    <tr>
+                        <td>{{ $s['store_name'] }}{{ $s['is_host'] ? ' (host)' : '' }}</td>
+                        <td class="right">{{ $s['count'] }}</td>
+                        @foreach ($methods as $m)<td class="right">{{ $money($s['by_method'][$m]) }}</td>@endforeach
+                        <td class="right">{{ $money($s['total']) }}</td>
+                        <td class="right">{{ $s['is_host'] ? '-' : $money($s['settled_amount'] ?? 0) }}</td>
+                        <td class="right">{{ $s['is_host'] ? '-' : $money($s['balance']) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>Collected</td><td></td>
+                    @foreach ($methods as $m)<td class="right">{{ $money($joint['collected_by_method'][$m]) }}</td>@endforeach
+                    <td class="right">{{ $money($joint['collected']) }}</td><td></td><td class="right">{{ $money($joint['balance']) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    @elseif (! empty($joint) && $joint['role'] === 'partner')
+        <h2>Joint event</h2>
+        <table class="list">
+            <tbody>
+                <tr><td>Hosted by</td><td class="right">{{ $joint['host']['name'] }}</td></tr>
+                <tr><td>Collected by host for this store</td><td class="right">RM {{ $money($joint['owed']) }}</td></tr>
+                <tr><td>Paid to this store</td><td class="right">RM {{ $money($joint['settled_amount'] ?? 0) }}{{ $joint['settled_at'] ? ' on '.$joint['settled_at']->format('d/m/Y') : '' }}</td></tr>
+                <tr><td class="bold">Still owed</td><td class="right bold">RM {{ $money($joint['balance']) }}</td></tr>
+            </tbody>
+        </table>
+    @endif
+
     <h2>Products sold</h2>
     <table class="list">
         <thead>

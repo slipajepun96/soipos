@@ -28,6 +28,13 @@ class SettingController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'receipt_footer' => ['nullable', 'string', 'max:255'],
+            'bank_name' => ['nullable', 'string', 'max:100', 'required_with:bank_account_no'],
+            'bank_account_no' => ['nullable', 'string', 'max:50', 'regex:/^[0-9][0-9 -]*$/', 'required_with:bank_name'],
+            'bank_account_name' => ['nullable', 'string', 'max:255'],
+        ], [
+            'bank_name.required_with' => 'Enter the bank name for this account number.',
+            'bank_account_no.required_with' => 'Enter the account number for this bank.',
+            'bank_account_no.regex' => 'The account number may only contain digits, spaces and dashes.',
         ]);
 
         Setting::setMany($validated);

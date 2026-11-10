@@ -4,7 +4,7 @@ namespace App\Support;
 
 /**
  * The store the current request works in. Set by the ResolveStore middleware from the
- * session (staff) or by public pages from their link (pre-order form, agent sign-up).
+ * session (staff) or by public pages from their link (pre-order form).
  * Every store-owned model is filtered by it; with no store set, store data is hidden.
  */
 class CurrentStore

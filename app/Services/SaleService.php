@@ -81,8 +81,12 @@ class SaleService
         return DB::transaction(function () use ($data, $type, $allowsCredit, $payLater, $resolved) {
             $resolved ??= $this->resolveItems($data['items']);
 
-            // Lines without a product (untracked items) are sold but move no stock.
-            $tracked = array_values(array_filter($resolved, fn ($line) => $line['product'] !== null));
+            // Bundles ("Bakul") take stock out of each of their components. Lines without a product
+            // (untracked items) or for no-stock products are sold but move no stock.
+            $tracked = array_values(array_filter(
+                $this->ledger->expandBundles($resolved),
+                fn ($line) => $line['product'] !== null && $line['product']->track_stock && ! $line['product']->is_bundle,
+            ));
             $lines = $this->ledger->outboundLines($tracked, fn ($item) => [
                 'sales_unit_price' => $item['stock_unit_price'] ?? $item['unit_price'],
                 'total_sales_price' => $item['line_total'],

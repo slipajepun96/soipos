@@ -29,7 +29,6 @@ class AdminStoreController extends Controller
             'products_count' => (int) ($products[$s->id] ?? 0),
             'sales_count' => (int) ($sales[$s->id] ?? 0),
             'revenue' => round((float) ($revenue[$s->id] ?? 0), 2),
-            'agent_link' => route('agent.register', $s->code),
         ]);
 
         return Inertia::render('Admin/Stores', ['stores' => $stores]);
@@ -41,6 +40,7 @@ class AdminStoreController extends Controller
         $store = Store::create([
             'name' => $data['name'],
             'code' => ($data['code'] ?? null) ?: Store::makeCode($data['name']),
+            'short_code' => $data['short_code'],
             'is_active' => true,
         ]);
         Setting::setMany(['store_name' => $store->name], $store->id);
@@ -54,6 +54,7 @@ class AdminStoreController extends Controller
         $store->update([
             'name' => $data['name'],
             'code' => ($data['code'] ?? null) ?: Store::makeCode($data['name'], $store->id),
+            'short_code' => $data['short_code'],
             'is_active' => $request->boolean('is_active', $store->is_active),
         ]);
 
@@ -75,13 +76,19 @@ class AdminStoreController extends Controller
 
     private function validated(Request $request, ?Store $store = null): array
     {
+        $request->merge(['short_code' => strtoupper(trim((string) $request->input('short_code')))]);
+
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'short_code' => ['required', 'string', 'regex:'.Store::SHORT_CODE_PATTERN, Rule::unique('stores', 'short_code')->ignore($store?->id)],
             'code' => ['nullable', 'string', 'max:60', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('stores', 'code')->ignore($store?->id)],
             'is_active' => ['sometimes', 'boolean'],
         ], [
             'code.regex' => 'Store code may only use small letters, numbers and dashes (e.g. kedai-kuantan).',
             'code.unique' => 'Another store already uses this code.',
+            'short_code.required' => 'Enter a short code for document numbers (e.g. KTN).',
+            'short_code.regex' => 'Short code must be 2–6 capital letters or numbers, starting with a letter (e.g. KTN).',
+            'short_code.unique' => 'Another store already uses this short code.',
         ]);
     }
 }

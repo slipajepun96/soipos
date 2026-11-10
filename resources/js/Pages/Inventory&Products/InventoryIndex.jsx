@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ArrowDownToLine, ArrowUpFromLine, ChevronRight, ClipboardList, ScrollText } from 'lucide-react';
 import { Card, CardContent } from '@/Components/ui/card';
 import InventoryPage from '@/Components/inventory/InventoryPage';
+import InventoryTabs from '@/Components/inventory/InventoryTabs';
 import BalanceTable, { isLowStock } from '@/Components/inventory/BalanceTable';
 import { formatMoney } from '@/lib/format';
 
@@ -18,7 +19,8 @@ export default function InventoryIndex({ balance = [], counts = {} }) {
     const outCount = balance.filter((row) => Number(row.balance) <= 0).length;
 
     return (
-        <InventoryPage title="Inventory" description="Track stock moving in and out, and what you hold right now.">
+        <InventoryPage title="Inventory" description="Stock, products and suppliers.">
+            <InventoryTabs />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {modules.map(({ title, description, href, icon: Icon, count }) => (
                     <Link key={title} href={href} className="group">

@@ -24,7 +24,7 @@ export const eventDates = (e) => (e.start_date === e.end_date
     ? formatDate(e.start_date)
     : `${formatDate(e.start_date)} – ${formatDate(e.end_date)}`);
 
-export default function EventsIndex({ events = [] }) {
+export default function EventsIndex({ events = [], partnerStores = [] }) {
     const [editing, setEditing] = useState(null); // null | 'new' | event
 
     const open = events.filter((e) => e.status === 'open');
@@ -58,7 +58,7 @@ export default function EventsIndex({ events = [] }) {
             {open.length > 0 && <EventGrid title="Open" events={open} onEdit={setEditing} />}
             {closed.length > 0 && <EventGrid title="Closed" events={closed} onEdit={setEditing} />}
 
-            <EventFormDialog event={editing} onClose={() => setEditing(null)} />
+            <EventFormDialog event={editing} partnerStores={partnerStores} onClose={() => setEditing(null)} />
         </InventoryPage>
     );
 }
@@ -95,6 +95,11 @@ function EventCard({ event, onEdit }) {
                                 <MapPin className="h-3.5 w-3.5" />{event.location}
                             </p>
                         )}
+                        {event.joint_role && (
+                            <Badge variant="secondary" className="mt-1.5">
+                                {event.joint_role === 'host' ? 'Joint event · host' : `Joint event · hosted by ${event.joint_host}`}
+                            </Badge>
+                        )}
                     </div>
                     <Badge variant={closed ? 'outline' : 'default'}>{closed ? 'Closed' : 'Open'}</Badge>
                 </div>
@@ -117,13 +122,15 @@ function EventCard({ event, onEdit }) {
                             Report
                         </Link>
                     </Button>
+                    {event.joint_role !== 'partner' && (<>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit} aria-label="Edit">
                         <Pencil />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggle} aria-label={closed ? 'Reopen' : 'Close'} title={closed ? 'Reopen' : 'Close event'}>
                         {closed ? <LockOpen /> : <Lock />}
                     </Button>
-                    {!event.has_sales && (
+                    </>)}
+                    {!event.has_sales && !event.joint_role && (
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={remove} aria-label="Delete">
                             <Trash2 />
                         </Button>
@@ -134,20 +141,27 @@ function EventCard({ event, onEdit }) {
     );
 }
 
-function EventFormDialog({ event, onClose }) {
+function EventFormDialog({ event, partnerStores, onClose }) {
     if (!event) return null;
-    return <EventForm key={event === 'new' ? 'new' : event.id} event={event === 'new' ? null : event} onClose={onClose} />;
+    return <EventForm key={event === 'new' ? 'new' : event.id} event={event === 'new' ? null : event} partnerStores={partnerStores} onClose={onClose} />;
 }
 
-function EventForm({ event, onClose }) {
+function EventForm({ event, partnerStores, onClose }) {
+    // Stores you can pick, plus any partner already on the event (e.g. added by a master admin).
+    const current = event?.partner_stores ?? [];
+    const storeChoices = [...partnerStores, ...current.filter((p) => !partnerStores.some((s) => s.id === p.id))];
     const form = useForm({
         name: event?.name ?? '',
         location: event?.location ?? '',
         start_date: event?.start_date ?? today(),
         end_date: event?.end_date ?? today(),
         notes: event?.notes ?? '',
+        partner_store_ids: current.map((p) => p.id),
     });
     const { data, setData, errors } = form;
+    const togglePartner = (id) => setData('partner_store_ids', data.partner_store_ids.includes(id)
+        ? data.partner_store_ids.filter((x) => x !== id)
+        : [...data.partner_store_ids, id]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -181,6 +195,28 @@ function EventForm({ event, onClose }) {
                     <FormField label="Notes" htmlFor="notes" error={errors.notes}>
                         <Textarea id="notes" rows={2} value={data.notes} onChange={(e) => setData('notes', e.target.value)} placeholder="Booth no., rental, team on duty…" />
                     </FormField>
+                    {storeChoices.length > 0 && (
+                        <FormField label="Joint with other stores" error={errors.partner_store_ids || errors['partner_store_ids.0']}>
+                            <div className="space-y-1.5 rounded-md border p-2">
+                                {storeChoices.map((s) => (
+                                    <label key={s.id} className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-accent">
+                                        <input
+                                            type="checkbox"
+                                            className="rounded border-input text-primary focus:ring-ring"
+                                            checked={data.partner_store_ids.includes(s.id)}
+                                            onChange={() => togglePartner(s.id)}
+                                        />
+                                        {s.name}
+                                        {s.short_code && <span className="text-xs text-muted-foreground">({s.short_code})</span>}
+                                    </label>
+                                ))}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                Ticked stores sell with you at this event. You host: your POS sells their products and all payments come to you;
+                                you settle with them after the event.
+                            </p>
+                        </FormField>
+                    )}
                     <DialogFooter className="gap-2 sm:gap-0">
                         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
                         <Button type="submit" disabled={form.processing}>{event ? 'Save changes' : 'Create event'}</Button>

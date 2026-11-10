@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import InventoryTabs from '@/Components/inventory/InventoryTabs';
 import DataTable from '@/Components/DataTable';
 import PrimaryButton from '@/Components/PrimaryButton';
 import { Plus, FileText } from 'lucide-react';
@@ -71,10 +72,11 @@ export default function SupplierIndex({ suppliers }) {
                 </h2>
             }
         >
-            <Head title="Inventory & Products" />
+            <Head title="Suppliers" />
 
             <div className="py-2">
                 <div className="mx-auto max-w-7xl sm:px-2 lg:px-2">
+                    <InventoryTabs className="mx-2 mb-3 mt-4" />
 
                     {/* <div className="overflow-hidden sm:rounded-lg m-2 p-2 border-b-2">
                         <div className='font-bold text-2xl mb-2'>Products</div>

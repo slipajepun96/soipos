@@ -58,7 +58,7 @@ export default function ViewProductDetail({ product, suppliers, product_categori
     // Helper function to get product category name by ID
     const getProductCategoryName = (product_category_id) => {
         const product_category = product_categories?.find(c => c.id === product_category_id);
-        return product_category ? product_category.product_categories_name : 'Unknown Product Category';
+        return product_category ? product_category.product_categories_name : '-';
     };
 
     const handleDialogClose = (isOpen) => {
@@ -143,7 +143,7 @@ export default function ViewProductDetail({ product, suppliers, product_categori
                                     </>
                                 }
                                 />
-                                <span className="font-bold">{data.product_low_stock_limit || "-"} Unit</span>
+                                <span className="font-bold">{product.is_bundle ? 'Bakul' : product.track_stock === false ? 'No stock kept' : `${data.product_low_stock_limit || '-'} Unit`}</span>
                             </div>
                         </div>
                         <div className='grid grid-cols-2 gap-2'>

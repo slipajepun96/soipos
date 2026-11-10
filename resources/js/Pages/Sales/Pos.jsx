@@ -21,6 +21,7 @@ import {
     ScanBarcode,
     Search,
     ShoppingCart,
+    Store,
     Smartphone,
     Trash2,
     UserRound,
@@ -39,6 +40,7 @@ import BarcodeScannerDialog from '@/Components/sales/BarcodeScannerDialog';
 import { formatDate, formatMoney, formatQty, formatUnits, productLabel, wholeUnits } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import DuitNowQr from '@/Components/sales/DuitNowQr';
+import BankDetails from '@/Components/sales/BankDetails';
 import { PaymentProofInput, PROOF_METHODS, attachProofToNewSale } from '@/Components/sales/PaymentProof';
 
 const CART_KEY = 'soipos.pos.cart';
@@ -47,9 +49,9 @@ const METHOD_ICONS = { Cash: Banknote, Card: CreditCard, 'E-Wallet': Smartphone,
 
 const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-function loadCart() {
+function loadCart(key = CART_KEY) {
     try {
-        const saved = JSON.parse(window.localStorage.getItem(CART_KEY) || '[]');
+        const saved = JSON.parse(window.localStorage.getItem(key) || '[]');
         return Array.isArray(saved) ? saved.filter((l) => !l.option).map((l) => ({ ...l, key: l.product_id })) : [];
     } catch {
         return [];
@@ -63,11 +65,15 @@ function cashSuggestions(total) {
     return [...new Set(values.map(round2))].filter((v) => v >= total).slice(0, 5);
 }
 
-export default function Pos({ products = [], categories = [], availableStock = {}, paymentMethods = [], events = [], duitnowQr = null }) {
+export default function Pos({ products = [], categories = [], availableStock = {}, paymentMethods = [], events = [], duitnowQr = null, bankAccount = null, joint = null }) {
     const searchRef = useRef(null);
     const [query, setQuery] = useState('');
     const [category, setCategory] = useState('all');
-    const [cart, setCart] = useState(loadCart);
+    // Joint event POS (host selling for partner stores too): its own cart, store per line.
+    const cartKey = joint ? `${CART_KEY}.joint.${joint.event.id}` : CART_KEY;
+    const storeById = useMemo(() => Object.fromEntries((joint?.stores ?? []).map((st) => [st.id, st])), [joint]);
+    const [storeFilter, setStoreFilter] = useState('all');
+    const [cart, setCart] = useState(() => loadCart(cartKey));
     const [customer, setCustomer] = useState({ name: '', company: '', phone: '', email: '', address: '' });
     const [docType, setDocType] = useState('receipt'); // receipt | invoice
     const [payLater, setPayLater] = useState(false);
@@ -104,7 +110,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
     }, [eventId]);
 
     useEffect(() => {
-        try { window.localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* storage unavailable */ }
+        try { window.localStorage.setItem(cartKey, JSON.stringify(cart)); } catch { /* storage unavailable */ }
     }, [cart]);
 
     useEffect(() => {
@@ -113,7 +119,13 @@ export default function Pos({ products = [], categories = [], availableStock = {
         return () => clearTimeout(t);
     }, [notice]);
 
-    const stockOf = useCallback((id) => Number(availableStock[id] || 0), [availableStock]);
+    // No-stock products (track_stock = false) can always be sold. A Bakul's figure is how many
+    // can be made from its items (null = no limit, when none of its items keep stock).
+    const unstocked = useMemo(() => new Set(products.filter((p) => p.track_stock === false && !p.is_bundle).map((p) => p.id)), [products]);
+    const stockOf = useCallback(
+        (id) => (unstocked.has(id) || availableStock[id] === null ? Infinity : Number(availableStock[id] || 0)),
+        [availableStock, unstocked],
+    );
 
     const usedCategories = useMemo(() => {
         const ids = new Set(products.map((p) => p.product_category_id));
@@ -124,11 +136,12 @@ export default function Pos({ products = [], categories = [], availableStock = {
         const q = query.trim().toLowerCase();
         return products.filter((p) => {
             if (category !== 'all' && p.product_category_id !== category) return false;
+            if (joint && storeFilter !== 'all' && p.store_id !== storeFilter) return false;
             if (!q) return true;
             return [productLabel(p), p.product_sku_code, p.product_code]
                 .some((v) => v && String(v).toLowerCase().includes(q));
         });
-    }, [products, query, category]);
+    }, [products, query, category, joint, storeFilter]);
 
     /* ---------- cart ---------- */
 
@@ -155,6 +168,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
                 product_id: product.id,
                 name: productLabel(product),
                 unit: product.product_unit,
+                store_id: product.store_id,
                 unit_price: Number(product.product_price || 0),
                 quantity: qty,
             }];
@@ -234,6 +248,10 @@ export default function Pos({ products = [], categories = [], availableStock = {
         if (!canCharge) return;
         setProcessing(true);
         setErrors([]);
+        if (joint) {
+            await chargeJoint();
+            return;
+        }
         try {
             const { data } = await axios.post(route('sales.checkout'), {
                 document_type: docType,
@@ -254,6 +272,39 @@ export default function Pos({ products = [], categories = [], availableStock = {
             if (proofFile) await attachProofToNewSale(data.sale, proofFile);
             setCompleted(data.sale);
             toast.success(`${data.sale.document_type === 'invoice' ? 'Invoice' : 'Sale'} ${data.sale.receipt_no} saved.`);
+            setMobileCartOpen(false);
+            router.reload({ only: ['availableStock'] });
+        } catch (error) {
+            const bag = error.response?.data?.errors;
+            setErrors(bag ? [...new Set(Object.values(bag).flat())] : [errorMessage(error)]);
+            toast.error('Sale not saved', { description: errorMessage(error) });
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    /** Joint event: one checkout, saved as one sale per store; all money goes to the host. */
+    const chargeJoint = async () => {
+        try {
+            const { data } = await axios.post(route('sales.events.jointCheckout', joint.event.id), {
+                customer_name: customer.name || null,
+                customer_phone: customer.phone || null,
+                items: validLines.map((l) => ({ product_id: l.product_id, quantity: l.quantity, unit_price: Number(l.unit_price || 0) })),
+                payment_method: method,
+                payment_reference: reference || null,
+                amount_tendered: isCash ? paid : null,
+            });
+            if (PROOF_METHODS.includes(method) && proof) {
+                try {
+                    const form = new FormData();
+                    form.append('proof', proof);
+                    await axios.post(route('sales.joint.proof', data.sale.id), form);
+                } catch (error) {
+                    toast.warning('Sale saved, but the payment proof photo was not', { description: errorMessage(error) });
+                }
+            }
+            setCompleted(data.sale);
+            toast.success(`Joint sale ${data.sale.receipt_no} saved.`);
             setMobileCartOpen(false);
             router.reload({ only: ['availableStock'] });
         } catch (error) {
@@ -318,6 +369,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
             itemCount={itemCount}
             paymentMethods={paymentMethods}
             duitnowQr={duitnowQr}
+            bankAccount={bankAccount}
             method={method}
             setMethod={setMethod}
             tendered={tendered}
@@ -333,6 +385,8 @@ export default function Pos({ products = [], categories = [], availableStock = {
             processing={processing}
             canCharge={canCharge}
             charge={charge}
+            joint={joint}
+            storeById={storeById}
         />
     );
 
@@ -361,11 +415,22 @@ export default function Pos({ products = [], categories = [], availableStock = {
                             <Camera />
                             <span className="hidden sm:inline">Camera</span>
                         </Button>
-                        <SessionPicker events={events} value={activeEvent?.id || ''} onChange={setEventId} />
-                        <Button variant="outline" className="h-11" onClick={() => { setCollectOrderId(null); setCollectOpen(true); }}>
-                            <PackageCheck />
-                            <span className="hidden sm:inline">Collect pre-order</span>
-                        </Button>
+                        {joint ? (
+                            <Button className="h-11 max-w-[16rem] justify-start" asChild title="Joint event">
+                                <Link href={route('sales.events.show', joint.event.id)}>
+                                    <CalendarDays />
+                                    <span className="hidden truncate sm:inline">Joint · {joint.event.name}</span>
+                                </Link>
+                            </Button>
+                        ) : (
+                            <>
+                                <SessionPicker events={events} value={activeEvent?.id || ''} onChange={setEventId} />
+                                <Button variant="outline" className="h-11" onClick={() => { setCollectOrderId(null); setCollectOpen(true); }}>
+                                    <PackageCheck />
+                                    <span className="hidden sm:inline">Collect pre-order</span>
+                                </Button>
+                            </>
+                        )}
                         <Button variant="outline" className="h-11" asChild>
                             <Link href={route('sales.index')}>
                                 <History />
@@ -373,6 +438,26 @@ export default function Pos({ products = [], categories = [], availableStock = {
                             </Link>
                         </Button>
                     </div>
+
+                    {joint && (
+                        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+                            {[{ id: 'all', name: 'All stores' }, ...joint.stores].map((st) => (
+                                <button
+                                    key={st.id}
+                                    type="button"
+                                    onClick={() => setStoreFilter(st.id)}
+                                    className={cn(
+                                        'flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
+                                        storeFilter === st.id ? 'border-primary bg-primary text-primary-foreground' : 'bg-background hover:bg-accent',
+                                    )}
+                                >
+                                    <Store className="h-3.5 w-3.5" />
+                                    {st.short_code || st.name}
+                                    {st.is_host && <span className="text-xs opacity-70">(host)</span>}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {usedCategories.length > 0 && (
                         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
@@ -411,6 +496,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
                                         key={product.id}
                                         product={product}
                                         stock={stockOf(product.id)}
+                                        storeCode={joint ? storeById[product.store_id]?.short_code || storeById[product.store_id]?.name : null}
                                         inCart={cart.filter((l) => l.product_id === product.id).reduce((s, l) => s + Number(l.quantity || 0), 0)}
                                         onAdd={() => addToCart(product)}
                                     />
@@ -457,6 +543,7 @@ export default function Pos({ products = [], categories = [], availableStock = {
                 }}
                 paymentMethods={paymentMethods}
                 duitnowQr={duitnowQr}
+                bankAccount={bankAccount}
                 initialOrderId={collectOrderId}
                 onCollected={(sale) => {
                     setCollectOpen(false);
@@ -522,7 +609,7 @@ function SessionPicker({ events, value, onChange }) {
     );
 }
 
-function ProductTile({ product, stock, inCart, onAdd }) {
+function ProductTile({ product, stock, inCart, onAdd, storeCode = null }) {
     const out = stock <= 0;
     const initials = product.product_name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 
@@ -546,12 +633,15 @@ function ProductTile({ product, stock, inCart, onAdd }) {
             {inCart > 0 && (
                 <Badge className="absolute right-2 top-2 tabular-nums">{formatQty(inCart)}</Badge>
             )}
+            {storeCode && (
+                <Badge variant="secondary" className="absolute left-2 top-2 max-w-[70%] truncate">{storeCode}</Badge>
+            )}
             <div className="flex flex-1 flex-col gap-1 p-3">
                 <p className="line-clamp-2 text-sm font-medium leading-snug">{productLabel(product)}</p>
                 <div className="mt-auto flex items-end justify-between gap-2 pt-1">
                     <p className="font-semibold tabular-nums">RM {formatMoney(product.product_price)}</p>
                     <p className={cn('text-xs tabular-nums', out ? 'font-medium text-destructive' : 'text-muted-foreground')}>
-                        {out ? 'Out of stock' : `${formatQty(stock)} left`}
+                        {out ? 'Out of stock' : stock === Infinity ? 'No stock kept' : `${formatQty(stock)} left`}
                     </p>
                 </div>
             </div>
@@ -565,9 +655,17 @@ function CartPanel(props) {
         customer, setCustomer, activeEvent, showCustomer, setShowCustomer, docType, setDocType, payLater, setPayLater,
         discountValue, setDiscountValue, discountMode, setDiscountMode,
         subtotal, discount, total, itemCount,
-        paymentMethods, duitnowQr, method, setMethod, tendered, setTendered, reference, setReference, proof, setProof,
-        change, isCash, paid, errors, processing, canCharge, charge,
+        paymentMethods, duitnowQr, bankAccount, method, setMethod, tendered, setTendered, reference, setReference, proof, setProof,
+        change, isCash, paid, errors, processing, canCharge, charge, joint, storeById,
     } = props;
+
+    // Joint event: what each store sold in this cart.
+    const byStore = joint
+        ? joint.stores.map((st) => ({
+            ...st,
+            total: round2(cart.filter((l) => l.store_id === st.id).reduce((sum, l) => sum + round2(Number(l.quantity || 0) * Number(l.unit_price || 0)), 0)),
+        })).filter((st) => st.total > 0)
+        : [];
 
     return (
         <div className="flex min-h-0 flex-1 flex-col">
@@ -603,7 +701,7 @@ function CartPanel(props) {
 
             {(showCustomer || docType === 'invoice') && (
                 <div className="space-y-2 border-b bg-muted/40 px-4 py-3">
-                    <div className="grid grid-cols-2 rounded-md border bg-background p-0.5 text-xs">
+                    <div className={cn('grid grid-cols-2 rounded-md border bg-background p-0.5 text-xs', joint && 'hidden')}>
                         {[['receipt', 'Receipt'], ['invoice', 'Issue invoice']].map(([key, label]) => (
                             <button
                                 key={key}
@@ -667,7 +765,14 @@ function CartPanel(props) {
                         {cart.map((line) => (
                             <li key={line.key} className="space-y-2 px-4 py-3">
                                 <div className="flex items-start justify-between gap-2">
-                                    <p className="text-sm font-medium leading-snug">{line.name}</p>
+                                    <p className="text-sm font-medium leading-snug">
+                                        {joint && (
+                                            <Badge variant="secondary" className="mr-1.5 align-middle text-[10px]">
+                                                {storeById[line.store_id]?.short_code || storeById[line.store_id]?.name || '?'}
+                                            </Badge>
+                                        )}
+                                        {line.name}
+                                    </p>
                                     <button
                                         type="button"
                                         onClick={() => removeLine(line.key)}
@@ -716,6 +821,8 @@ function CartPanel(props) {
                                             step="0.01"
                                             value={line.unit_price}
                                             onChange={(e) => setPrice(line.key, e.target.value)}
+                                            disabled={!!joint}
+                                            title={joint ? 'Event price set by the store' : undefined}
                                             className="h-8 pl-8 pr-1 text-right text-sm tabular-nums"
                                             aria-label="Unit price"
                                         />
@@ -736,7 +843,13 @@ function CartPanel(props) {
                         <span className="text-muted-foreground">Subtotal</span>
                         <span className="tabular-nums">{formatMoney(subtotal)}</span>
                     </div>
-                    <div className="flex items-center justify-between gap-2">
+                    {byStore.map((st) => (
+                        <div key={st.id} className="flex justify-between text-xs text-muted-foreground">
+                            <span>{st.name}{st.is_host ? ' (host)' : ''}</span>
+                            <span className="tabular-nums">{formatMoney(st.total)}</span>
+                        </div>
+                    ))}
+                    <div className={cn('flex items-center justify-between gap-2', joint && 'hidden')}>
                         <span className="text-muted-foreground">Discount</span>
                         <div className="flex items-center gap-1.5">
                             <div className="inline-flex rounded-md border bg-background p-0.5 text-xs">
@@ -842,6 +955,7 @@ function CartPanel(props) {
                 ) : (
                     <div className="space-y-2">
                         {method === 'E-Wallet' && <DuitNowQr qr={duitnowQr} total={total} />}
+                        {method === 'Bank Transfer' && <BankDetails account={bankAccount} total={total} />}
                         <Label htmlFor="reference" className="text-xs text-muted-foreground">Reference (optional)</Label>
                         <Input
                             id="reference"
@@ -877,7 +991,8 @@ function CompletedDialog({ sale, onNewSale }) {
     if (!sale) return null;
 
     const isInvoice = sale.document_type === 'invoice';
-    const open = (name) => window.open(route(name, sale.id), '_blank', 'noopener');
+    // A joint checkout prints one combined receipt.
+    const open = (name) => window.open(route(sale.joint ? 'sales.joint.receipt' : name, sale.id), '_blank', 'noopener');
     const unpaid = sale.balance_due > 0;
 
     return (
@@ -891,6 +1006,12 @@ function CompletedDialog({ sale, onNewSale }) {
                     </DialogDescription>
                 </DialogHeader>
                 <dl className="space-y-2 rounded-lg border p-4 text-sm">
+                    {sale.parts?.map((part) => (
+                        <div key={part.sale_id} className="flex justify-between text-xs">
+                            <dt className="text-muted-foreground">{part.short_code || part.store_name} · {part.receipt_no}</dt>
+                            <dd className="tabular-nums">RM {formatMoney(part.total)}</dd>
+                        </div>
+                    ))}
                     <div className="flex justify-between">
                         <dt className="text-muted-foreground">Total</dt>
                         <dd className="font-medium tabular-nums">RM {formatMoney(sale.total)}</dd>

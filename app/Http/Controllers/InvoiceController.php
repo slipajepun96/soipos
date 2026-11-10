@@ -53,7 +53,7 @@ class InvoiceController extends Controller
     {
         return Inertia::render('Sales/CreateInvoice', [
             'products' => Product::where('is_active', '1')->orderBy('product_name')->get(),
-            'availableStock' => $this->ledger->availableMap(),
+            'availableStock' => $this->ledger->saleableMap(),
             'paymentMethods' => Sale::PAYMENT_METHODS,
             'events' => SalesEvent::where('status', 'open')->orderBy('start_date')->get(['id', 'name']),
         ]);

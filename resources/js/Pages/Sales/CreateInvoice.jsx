@@ -53,7 +53,9 @@ export default function CreateInvoice({ products = [], availableStock = {}, paym
     const discount = Math.min(subtotal, Number(data.discount || 0));
     const total = Math.round((subtotal - discount) * 100) / 100;
     const paidNow = payment === 'full' ? total : payment === 'deposit' ? Number(data.payment_amount || 0) : 0;
-    const overdrawn = lines.some((l) => l.product_id && Number(l.quantity || 0) > Number(availableStock[l.product_id] || 0));
+    const unstocked = new Set(products.filter((p) => (p.track_stock === false && !p.is_bundle) || availableStock[p.id] === null).map((p) => p.id));
+    const overdrawn = lines.some((l) => l.product_id && !unstocked.has(l.product_id)
+        && Number(l.quantity || 0) > Number(availableStock[l.product_id] || 0));
 
     const setDate = (value) => {
         setData((d) => ({ ...d, sale_date: value, due_date: terms === null ? d.due_date : plusDays(value, terms) }));

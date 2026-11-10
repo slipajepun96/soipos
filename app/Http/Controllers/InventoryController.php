@@ -160,7 +160,7 @@ class InventoryController extends Controller
     private function stockInFormProps(): array
     {
         return [
-            'products' => Product::where('is_active', '1')->orderBy('product_name')->get(),
+            'products' => Product::where('is_active', '1')->stocked()->orderBy('product_name')->get(),
             'suppliers' => Supplier::where('is_active', '1')->orderBy('supplier_name')->get(),
         ];
     }
@@ -186,7 +186,7 @@ class InventoryController extends Controller
 
         return Inertia::render('Inventory&Products/Inventory/StockOut/AddStockOut', [
             'documentType' => self::STOCK_OUT_SLUGS[$slug],
-            'products' => Product::where('is_active', '1')->orderBy('product_name')->get(),
+            'products' => Product::where('is_active', '1')->stocked()->orderBy('product_name')->get(),
             'availableStock' => $this->availableStockMap(),
         ]);
     }
@@ -251,7 +251,7 @@ class InventoryController extends Controller
     public function addAdjustment()
     {
         return Inertia::render('Inventory&Products/Inventory/Adjustment/AddAdjustment', [
-            'products' => Product::where('is_active', '1')->orderBy('product_name')->get(),
+            'products' => Product::where('is_active', '1')->stocked()->orderBy('product_name')->get(),
             'availableStock' => $this->availableStockMap(),
         ]);
     }
@@ -259,7 +259,7 @@ class InventoryController extends Controller
     public function addDisposal()
     {
         return Inertia::render('Inventory&Products/Inventory/Adjustment/AddDisposal', [
-            'products' => Product::where('is_active', '1')->orderBy('product_name')->get(),
+            'products' => Product::where('is_active', '1')->stocked()->orderBy('product_name')->get(),
             'availableStock' => $this->availableStockMap(),
         ]);
     }
@@ -492,14 +492,14 @@ class InventoryController extends Controller
 
     private function activeProductRule()
     {
-        return StoreRule::exists('products')->where(fn ($query) => $query->where('is_active', '1'));
+        return StoreRule::exists('products')->where(fn ($query) => $query->where('is_active', '1')->where('track_stock', true));
     }
 
     private function balanceRows(): Collection
     {
         $totals = $this->stockTotals();
 
-        return Product::where('is_active', '1')->orderBy('product_name')->get()
+        return Product::where('is_active', '1')->stocked()->orderBy('product_name')->get()
             ->map(function ($product) use ($totals) {
                 $row = $totals->get($product->id);
                 $in = (float) ($row->total_in ?? 0);

@@ -112,7 +112,7 @@ class PreorderService
      */
     public function packingSummary(PreorderSession $session, array $stock = []): array
     {
-        $session->loadMissing('items.product');
+        $session->loadMissing('items.product.bundleItems.component');
         $lines = PreorderLine::query()
             ->join('preorders', 'preorders.id', '=', 'preorder_lines.preorder_id')
             ->where('preorders.preorder_session_id', $session->id)
@@ -129,6 +129,7 @@ class PreorderService
                 'label' => $item->label,
                 'product_id' => $item->product_id,
                 'tracked' => $item->product_id !== null,
+                'keeps_stock' => (bool) $item->product?->track_stock && ! $item->product?->is_bundle,
                 'product_name' => $item->product?->displayName(),
                 'product_unit' => $item->product?->product_unit,
                 'unit_quantity' => $item->unit_quantity,
@@ -145,7 +146,27 @@ class PreorderService
 
         // Stock needed per product for orders still to collect, against stock on hand.
         // Untracked items (no product) have no stock to check.
-        $products = $items->whereNotNull('product_id')->groupBy('product_id')->map(fn ($group, $productId) => [
+        // A bundle ("Bakul") needs stock of each of its components.
+        $needs = $session->items->flatMap(function ($item) use ($items) {
+            $row = $items->firstWhere('id', $item->id);
+            $product = $item->product;
+            if (! $product) {
+                return [];
+            }
+            if ($product->is_bundle) {
+                return $product->bundleItems
+                    ->filter(fn ($b) => $b->component && $b->component->track_stock && ! $b->component->is_bundle)
+                    ->map(fn ($b) => [
+                        'product_id' => $b->component->id,
+                        'product_name' => $b->component->displayName(),
+                        'product_unit' => $b->component->product_unit,
+                        'stock_needed' => round($row['stock_needed'] * $b->quantity, 4),
+                    ])->values()->all();
+            }
+
+            return $row['keeps_stock'] ? [$row] : [];
+        });
+        $products = $needs->groupBy('product_id')->map(fn ($group, $productId) => [
             'product_id' => $productId,
             'product_name' => $group->first()['product_name'],
             'product_unit' => $group->first()['product_unit'],
